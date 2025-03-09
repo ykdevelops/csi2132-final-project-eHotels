@@ -9,12 +9,13 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
+    // ✅ Handle Login
     const handleLogin = async (e) => {
         e.preventDefault();
         setError("");
 
         try {
-            const response = await fetch("/api/auth/login", {
+            const response = await fetch("/api/auth/login", { // ✅ Correct API route
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
@@ -29,7 +30,7 @@ export default function LoginPage() {
 
             console.log("✅ Logged in:", data.user);
             localStorage.setItem("user", JSON.stringify(data.user));
-            alert(`Welcome ${data.user.email}, Role: ${data.user.role}`);
+            alert(`Welcome ${data.user.name}, Role: ${data.user.role}`);
 
             router.push("/");
         } catch (error) {

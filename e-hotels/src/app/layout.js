@@ -22,7 +22,7 @@ export default function RootLayout({ children }) {
 
           {user ? (
             <>
-              <p>Logged in as: {user.email} ({user.role})</p>
+              <p>Logged in as: {user.name} ({user.role})</p>
               <button onClick={() => {
                 localStorage.removeItem("user");
                 setUser(null);

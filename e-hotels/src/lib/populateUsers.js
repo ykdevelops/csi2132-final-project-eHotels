@@ -33,12 +33,6 @@ async function fetchExistingUsers() {
 
         console.log("📋 Current users:", users);
 
-        if (users.length === 0) {
-            console.log("🚨 No users found! We need to insert new ones.");
-        } else {
-            console.log(`✅ Found ${users.length} users in Firestore.`);
-        }
-
         return users;
     } catch (error) {
         console.error("❌ Error fetching users:", error.message);
@@ -46,8 +40,8 @@ async function fetchExistingUsers() {
     }
 }
 
-// ✅ Create a User (All Users Have Password "1234" Hashed)
-async function createUser(email, role) {
+// ✅ Create a User (Includes `name`)
+async function createUser(name, email, password, role) {
     try {
         console.log(`🔍 Checking if ${role} account for ${email} exists...`);
 
@@ -55,18 +49,18 @@ async function createUser(email, role) {
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
-            console.log(`✅ ${role} account already exists for ${email}.`);
+            console.log(`✅ ${role} account already exists for ${email}`);
             return;
         }
 
-        // ✅ Hash password "1234" before storing
-        const password = "1234";
+        // ✅ Hash password before storing
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const userData = {
-            email,
+            name: name.trim(),
+            email: email.trim(),
             password: hashedPassword,
-            role,
+            role: role.trim(),
             createdAt: new Date().toISOString(),
         };
 
@@ -74,24 +68,24 @@ async function createUser(email, role) {
 
         // ✅ Insert user into Firestore
         await setDoc(userRef, userData);
-        console.log(`✅ ${role} account created for ${email}.`);
+        console.log(`✅ ${role} account created for ${email}`);
 
     } catch (error) {
         console.error(`❌ Error creating ${role} user:`, error.message);
     }
 }
 
-// ✅ Insert 2 Users (1 Customer, 1 Employee)
+// ✅ Insert Users (1 Customer, 1 Employee)
 async function insertUsers() {
     console.log("🔥 Inserting new users...");
 
     const usersToInsert = [
-        { email: "customer@example.com", role: "customer" },
-        { email: "employee@example.com", role: "employee" },
+        { name: "John Doe", email: "customer@example.com", role: "customer" },
+        { name: "Jane Smith", email: "employee@example.com", role: "employee" },
     ];
 
     for (const user of usersToInsert) {
-        await createUser(user.email, user.role);
+        await createUser(user.name, user.email, "1234", user.role);
     }
 
     console.log("🚀 User insertion completed!");

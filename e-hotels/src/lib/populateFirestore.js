@@ -1,9 +1,10 @@
-require("dotenv").config({ path: ".env.local" }); // ✅ Load environment variables
+require("dotenv").config({ path: ".env.local" });
 
 const { initializeApp } = require("firebase/app");
-const { getFirestore, collection, getDocs, doc, setDoc } = require("firebase/firestore");
+const { getFirestore, collection, doc, setDoc, getDocs } = require("firebase/firestore");
+const bcrypt = require("bcryptjs");
 
-// ✅ Firebase Configuration (Uses Environment Variables)
+// ✅ Firebase Configuration
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -17,116 +18,90 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const hotelChainId = "2vGpPOwRVel05GwtQg6F"; // 🔹 Replace with your hotel chain ID
-const hotelId = "RMtUTvMcPiuwIRBSFLtU"; // 🔹 Replace with your hotel ID
+// ✅ Sample Hotel Chains
+const hotelChains = [
+    { name: "Grand Luxe Hotels", numOfHotels: 5, address: "123 Main St, Toronto" },
+    { name: "Skyline Suites & Resorts", numOfHotels: 3, address: "456 Downtown Ave, Vancouver" },
+    { name: "Royal Haven Inn", numOfHotels: 4, address: "789 Prestige Rd, Montreal" },
+    { name: "BlueWave Hospitality", numOfHotels: 6, address: "555 Seaside Blvd, Miami" },
+    { name: "Evergreen Stays", numOfHotels: 2, address: "111 Greenway Dr, Calgary" },
+    { name: "Summit Grand Hotels", numOfHotels: 7, address: "777 Peak Rd, Denver" },
+];
 
-// ✅ Fetch Existing Rooms
-async function fetchAvailableRooms() {
+// ✅ Sample Employees
+const employees = [
+    { name: "Jane Smith", email: "employee1@example.com", role: "Manager" },
+    { name: "Mark Johnson", email: "employee2@example.com", role: "Receptionist" },
+];
+
+// ✅ Sample Customers
+const customers = [
+    { name: "John Doe", email: "customer1@example.com" },
+    { name: "Alice Brown", email: "customer2@example.com" },
+];
+
+// ✅ Insert Hotel Chains
+async function insertHotelChains() {
     try {
-        console.log("🔥 Fetching available rooms...");
-
-        if (!hotelChainId || !hotelId) {
-            throw new Error("❌ Invalid hotelChainId or hotelId. Ensure they exist in Firestore.");
+        console.log("🔥 Inserting hotel chains...");
+        for (const chain of hotelChains) {
+            const chainRef = doc(collection(db, "HotelChain"));
+            await setDoc(chainRef, chain);
+            console.log(`✅ Hotel Chain added: ${chain.name}`);
         }
-
-        const roomsCollection = collection(db, "hotelChains", hotelChainId, "hotels", hotelId, "rooms");
-        const roomsSnapshot = await getDocs(roomsCollection);
-
-        const rooms = roomsSnapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-        }));
-
-        console.log("📋 Current available rooms:", rooms);
-
-        if (rooms.length === 0) {
-            console.log("🚨 No available rooms found! We need to insert new ones.");
-        } else {
-            console.log(`✅ Found ${rooms.length} rooms in Firestore.`);
-        }
-
-        return rooms;
+        console.log("🚀 All hotel chains inserted!");
     } catch (error) {
-        console.error("❌ Error fetching rooms:", error.message);
-        return [];
+        console.error("❌ Error inserting hotel chains:", error);
     }
 }
 
-// ✅ Insert 5 Unique Rooms
-async function insertMultipleRooms() {
+// ✅ Insert Employees
+async function insertEmployees() {
     try {
-        console.log("🔥 Inserting 5 unique rooms...");
+        console.log("🔥 Inserting employees...");
 
-        if (!hotelChainId || !hotelId) {
-            throw new Error("❌ Invalid hotelChainId or hotelId.");
+        for (const emp of employees) {
+            const hashedPassword = await bcrypt.hash("1234", 10);
+            const empData = { ...emp, password: hashedPassword };
+
+            const empRef = doc(collection(db, "Employee"));
+            await setDoc(empRef, empData);
+            console.log(`✅ Employee added: ${emp.name}`);
         }
 
-        const newRooms = [
-            {
-                id: "room_002",
-                capacity: 3,
-                price: 180,
-                view: "mountain",
-                isAvailable: true,
-                amenities: ["TV", "WiFi", "Coffee Maker"],
-                extendible: true,
-            },
-            {
-                id: "room_003",
-                capacity: 4,
-                price: 250,
-                view: "city",
-                isAvailable: true,
-                amenities: ["TV", "WiFi", "Mini Bar", "Balcony"],
-                extendible: false,
-            },
-            {
-                id: "room_004",
-                capacity: 1,
-                price: 100,
-                view: "garden",
-                isAvailable: false,
-                amenities: ["TV", "WiFi"],
-                extendible: false,
-            },
-            {
-                id: "room_005",
-                capacity: 2,
-                price: 130,
-                view: "poolside",
-                isAvailable: true,
-                amenities: ["TV", "WiFi", "Jacuzzi"],
-                extendible: true,
-            },
-            {
-                id: "room_006",
-                capacity: 5,
-                price: 300,
-                view: "ocean",
-                isAvailable: true,
-                amenities: ["TV", "WiFi", "Kitchenette", "Private Deck"],
-                extendible: false,
-            },
-        ];
-
-        for (const room of newRooms) {
-            const roomRef = doc(db, "hotelChains", hotelChainId, "hotels", hotelId, "rooms", room.id);
-            await setDoc(roomRef, room);
-            console.log(`✅ Room ${room.id} added.`);
-        }
-
-        console.log("🚀 All rooms added successfully!");
-
+        console.log("🚀 All employees inserted!");
     } catch (error) {
-        console.error("❌ Error inserting rooms:", error.message);
+        console.error("❌ Error inserting employees:", error);
     }
 }
 
-// ✅ Run Fetch First, Then Insert If Needed
-fetchAvailableRooms().then((rooms) => {
-    if (rooms.length < 5) {
-        insertMultipleRooms();
-    } else {
-        console.log("✅ Enough rooms exist! Insert skipped.");
+// ✅ Insert Customers
+async function insertCustomers() {
+    try {
+        console.log("🔥 Inserting customers...");
+
+        for (const cust of customers) {
+            const hashedPassword = await bcrypt.hash("1234", 10);
+            const custData = { ...cust, password: hashedPassword };
+
+            const custRef = doc(collection(db, "Customer"));
+            await setDoc(custRef, custData);
+            console.log(`✅ Customer added: ${cust.name}`);
+        }
+
+        console.log("🚀 All customers inserted!");
+    } catch (error) {
+        console.error("❌ Error inserting customers:", error);
     }
-});
+}
+
+// ✅ Run Insertions
+async function populateFirestore() {
+    console.log("🔥 Populating Firestore...");
+    await insertHotelChains();
+    await insertEmployees();
+    await insertCustomers();
+    console.log("✅ Firestore Population Complete!");
+}
+
+populateFirestore();

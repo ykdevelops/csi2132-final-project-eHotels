@@ -13,6 +13,12 @@ export default function Navbar() {
         }
     }, []);
 
+    const handleLogout = () => {
+        localStorage.removeItem("user");
+        setUser(null);
+        router.push("/login");
+    };
+
     return (
         <nav style={{
             display: "flex",
@@ -33,16 +39,13 @@ export default function Navbar() {
             {/* 🔹 Right: Auth Links */}
             <div>
                 {user ? (
+                    // ✅ Show logout button if logged in
                     <>
                         <span style={{ marginRight: "15px", fontSize: "16px" }}>
                             Logged in as: <strong>{user.name} ({user.role})</strong>
                         </span>
                         <button
-                            onClick={() => {
-                                localStorage.removeItem("user");
-                                setUser(null);
-                                router.push("/login");
-                            }}
+                            onClick={handleLogout}
                             style={{
                                 padding: "8px 16px",
                                 backgroundColor: "#D32F2F",
@@ -56,6 +59,7 @@ export default function Navbar() {
                         </button>
                     </>
                 ) : (
+                    // ✅ Show login/signup buttons if not logged in
                     <>
                         <button
                             onClick={() => router.push("/login")}

@@ -31,9 +31,11 @@ export default function LoginPage() {
 
             console.log("✅ Logged in:", data.user);
             localStorage.setItem("user", JSON.stringify(data.user));
+
             alert(`Welcome ${data.user.name}, Role: ${data.user.role}`);
 
-            router.push("/");
+            // ✅ Redirect user to `/customer` page after login
+            router.push("/customer");
         } catch (error) {
             setError("Something went wrong. Try again.");
         }

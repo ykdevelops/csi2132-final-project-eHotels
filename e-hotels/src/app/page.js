@@ -3,94 +3,72 @@
 import { useEffect, useState } from "react";
 import { db, collection, getDocs } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from "@mui/material";
+import { Card, CardContent, CardMedia, Typography, Grid, Container } from "@mui/material";
 
 export default function HomePage() {
   const router = useRouter();
-  const [rooms, setRooms] = useState([]);
+  const [hotelChains, setHotelChains] = useState([]);
 
   useEffect(() => {
-    const fetchRooms = async () => {
+    const fetchHotelChains = async () => {
       try {
         console.log("🔥 Fetching hotel chains...");
 
         const hotelChainsSnapshot = await getDocs(collection(db, "HotelChain"));
-        let allRooms = [];
+        const chains = hotelChainsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-        for (const chainDoc of hotelChainsSnapshot.docs) {
-          const chainId = chainDoc.id;
-          const hotelsCollection = collection(db, "HotelChain", chainId, "Hotels");
-          const hotelsSnapshot = await getDocs(hotelsCollection);
-
-          for (const hotelDoc of hotelsSnapshot.docs) {
-            const hotelId = hotelDoc.id;
-            const hotelData = hotelDoc.data();
-
-            const roomsCollection = collection(db, "HotelChain", chainId, "Hotels", hotelId, "Rooms");
-            const roomsSnapshot = await getDocs(roomsCollection);
-
-            const hotelRooms = roomsSnapshot.docs.map((doc) => ({
-              id: doc.id,
-              hotelName: hotelData.name || "Unknown",
-              ...doc.data(),
-            }));
-
-            allRooms = [...allRooms, ...hotelRooms];
-          }
-        }
-
-        console.log("🚀 Final Room List:", allRooms);
-        setRooms(allRooms);
+        console.log("🚀 Hotel Chains:", chains);
+        setHotelChains(chains);
       } catch (error) {
-        console.error("❌ Error fetching rooms:", error);
+        console.error("❌ Error fetching hotel chains:", error);
       }
     };
 
-    fetchRooms();
+    fetchHotelChains();
   }, []);
 
   return (
-    <div style={{ marginTop: "30px", textAlign: "center", padding: "20px" }}>
-      <h2>Available Rooms</h2>
+    <Container maxWidth="md" style={{ textAlign: "center", marginTop: "40px" }}>
+      {/* 🔹 Welcome Message */}
+      <Typography variant="h4" gutterBottom>Welcome to e-Hotels</Typography>
+      <Typography variant="body1" color="textSecondary" style={{ marginBottom: "20px" }}>
+        Sign in to explore available rooms in top hotel chains.
+      </Typography>
 
-      <TableContainer component={Paper} style={{ width: "80%", margin: "auto" }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell><strong>Hotel</strong></TableCell>
-              <TableCell><strong>Capacity</strong></TableCell>
-              <TableCell><strong>Price</strong></TableCell>
-              <TableCell><strong>Amenities</strong></TableCell>
-              <TableCell><strong>Book</strong></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rooms.length > 0 ? (
-              rooms.map((room) => (
-                <TableRow key={room.id}>
-                  <TableCell>{room.hotelName}</TableCell>
-                  <TableCell>{room.capacity}</TableCell>
-                  <TableCell>${room.price}</TableCell>
-                  <TableCell>{room.amenities ? room.amenities.join(", ") : "None"}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => router.push(`/room/${room.id}`)}
-                    >
-                      Book Now
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={5} align="center">No available rooms at the moment.</TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </div>
+      {/* 🔹 Hotel Chains Listing */}
+      <Typography variant="h5" style={{ marginTop: "40px" }}>Featured Hotel Chains</Typography>
+
+      <Grid container spacing={3} justifyContent="center" style={{ marginTop: "20px" }}>
+        {hotelChains.length > 0 ? (
+          hotelChains.map((hotel) => (
+            <Grid item key={hotel.id} xs={12} sm={6} md={4}>
+              <Card
+                style={{ maxWidth: 300, textAlign: "center", cursor: "pointer" }}
+                onClick={() => router.push("/login")} // 🔹 Redirects to login page
+              >
+                {/* Fake Grey Image Box */}
+                <CardMedia
+                  style={{ height: 150, backgroundColor: "#e0e0e0" }}
+                  title="Hotel Placeholder"
+                />
+                <CardContent>
+                  <Typography variant="h6">{hotel.name}</Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    {hotel.address}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))
+        ) : (
+          <Typography variant="body1" color="textSecondary" style={{ marginTop: "20px" }}>
+            No hotel chains available at the moment.
+          </Typography>
+        )}
+      </Grid>
+    </Container>
   );
 }

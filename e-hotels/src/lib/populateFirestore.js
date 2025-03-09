@@ -1,7 +1,7 @@
 require("dotenv").config({ path: ".env.local" });
 
 const { initializeApp } = require("firebase/app");
-const { getFirestore, collection, doc, setDoc, getDocs } = require("firebase/firestore");
+const { getFirestore, collection, doc, setDoc } = require("firebase/firestore");
 const bcrypt = require("bcryptjs");
 
 // ✅ Firebase Configuration
@@ -18,26 +18,39 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ✅ Sample Hotel Chains
+// ✅ Sample Hotel Chains (3 chains)
 const hotelChains = [
-    { name: "Grand Luxe Hotels", numOfHotels: 5, address: "123 Main St, Toronto" },
-    { name: "Skyline Suites & Resorts", numOfHotels: 3, address: "456 Downtown Ave, Vancouver" },
-    { name: "Royal Haven Inn", numOfHotels: 4, address: "789 Prestige Rd, Montreal" },
-    { name: "BlueWave Hospitality", numOfHotels: 6, address: "555 Seaside Blvd, Miami" },
-    { name: "Evergreen Stays", numOfHotels: 2, address: "111 Greenway Dr, Calgary" },
-    { name: "Summit Grand Hotels", numOfHotels: 7, address: "777 Peak Rd, Denver" },
+    { name: "Summit Grand Hotels", numOfHotels: 3, address: "777 Peak Rd, Denver" },
+    { name: "Evergreen Stays", numOfHotels: 3, address: "111 Greenway Dr, Calgary" },
+    { name: "BlueWave Hospitality", numOfHotels: 3, address: "555 Seaside Blvd, Miami" },
 ];
 
-// ✅ Sample Employees
+// ✅ Sample Hotels (3 hotels, each assigned to a chain)
+const hotels = [
+    { name: "Skyline Resort", address: "300 Downtown St, Vancouver", rating: 4, numOfRooms: 3 },
+    { name: "Lakeside Paradise", address: "500 Lakeview Rd, Chicago", rating: 5, numOfRooms: 3 },
+    { name: "Golden Sands Hotel", address: "700 Beachside Ave, Miami", rating: 5, numOfRooms: 3 },
+];
+
+// ✅ Sample Rooms (3 rooms per hotel)
+const rooms = [
+    { capacity: 2, price: 150, view: "sea", isAvailable: true, amenities: ["TV", "WiFi"] },
+    { capacity: 3, price: 200, view: "city", isAvailable: true, amenities: ["TV", "WiFi", "Balcony"] },
+    { capacity: 4, price: 250, view: "mountain", isAvailable: false, amenities: ["TV", "WiFi", "Hot Tub"] },
+];
+
+// ✅ Sample Employees (3 employees)
 const employees = [
     { name: "Jane Smith", email: "employee1@example.com", role: "Manager" },
     { name: "Mark Johnson", email: "employee2@example.com", role: "Receptionist" },
+    { name: "Emma Wilson", email: "employee3@example.com", role: "Housekeeping" },
 ];
 
-// ✅ Sample Customers
+// ✅ Sample Customers (3 customers)
 const customers = [
     { name: "John Doe", email: "customer1@example.com" },
     { name: "Alice Brown", email: "customer2@example.com" },
+    { name: "Michael Davis", email: "customer3@example.com" },
 ];
 
 // ✅ Insert Hotel Chains
@@ -48,10 +61,44 @@ async function insertHotelChains() {
             const chainRef = doc(collection(db, "HotelChain"));
             await setDoc(chainRef, chain);
             console.log(`✅ Hotel Chain added: ${chain.name}`);
+
+            // Insert Hotels inside this Hotel Chain
+            await insertHotels(chainRef.id);
         }
         console.log("🚀 All hotel chains inserted!");
     } catch (error) {
         console.error("❌ Error inserting hotel chains:", error);
+    }
+}
+
+// ✅ Insert Hotels
+async function insertHotels(chainId) {
+    try {
+        console.log(`🏨 Adding hotels under chain ID: ${chainId}`);
+        for (const hotel of hotels) {
+            const hotelRef = doc(collection(db, "HotelChain", chainId, "Hotels"));
+            await setDoc(hotelRef, hotel);
+            console.log(`✅ Hotel added: ${hotel.name}`);
+
+            // Insert Rooms inside this Hotel
+            await insertRooms(chainId, hotelRef.id);
+        }
+    } catch (error) {
+        console.error("❌ Error inserting hotels:", error);
+    }
+}
+
+// ✅ Insert Rooms
+async function insertRooms(chainId, hotelId) {
+    try {
+        console.log(`🛏 Adding rooms under hotel ID: ${hotelId}`);
+        for (const room of rooms) {
+            const roomRef = doc(collection(db, "HotelChain", chainId, "Hotels", hotelId, "Rooms"));
+            await setDoc(roomRef, room);
+            console.log(`✅ Room added with price: $${room.price}`);
+        }
+    } catch (error) {
+        console.error("❌ Error inserting rooms:", error);
     }
 }
 
@@ -104,4 +151,5 @@ async function populateFirestore() {
     console.log("✅ Firestore Population Complete!");
 }
 
+// ✅ Run the script
 populateFirestore();

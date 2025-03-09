@@ -16,32 +16,59 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <header style={{ textAlign: "center", padding: "20px" }}>
-          <h1>Welcome to e-Hotels</h1>
-          <p>Find and book rooms from top hotel chains with real-time availability.</p>
+        {/* 🔥 Navbar */}
+        <nav style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "15px 40px",
+          backgroundColor: "#fff",
+          boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.1)"
+        }}>
+          {/* 🔹 Left: Logo */}
+          <div
+            style={{ fontSize: "24px", fontWeight: "bold", cursor: "pointer", color: "#D32F2F" }}
+            onClick={() => router.push("/")}
+          >
+            eHotels
+          </div>
 
-          {user ? (
-            <>
-              <p>Logged in as: {user.name} ({user.role})</p>
-              <button onClick={() => {
-                localStorage.removeItem("user");
-                setUser(null);
-                router.push("/auth");
-              }} style={{ margin: "10px", padding: "10px 20px" }}>
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <button onClick={() => router.push("/auth")} style={{ margin: "10px", padding: "10px 20px" }}>
-                Login
-              </button>
-              <button onClick={() => router.push("/auth")} style={{ margin: "10px", padding: "10px 20px" }}>
-                Register
-              </button>
-            </>
-          )}
-        </header>
+          {/* 🔹 Right: Auth Links */}
+          <div>
+            {user ? (
+              <>
+                <span style={{ marginRight: "15px", fontSize: "16px" }}>
+                  Logged in as: <strong>{user.name} ({user.role})</strong>
+                </span>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("user");
+                    setUser(null);
+                    router.push("/login");
+                  }}
+                  style={{ padding: "8px 16px", backgroundColor: "#D32F2F", color: "#fff", border: "none", cursor: "pointer", borderRadius: "4px" }}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => router.push("/login")}
+                  style={{ marginRight: "10px", padding: "8px 16px", backgroundColor: "#D32F2F", color: "#fff", border: "none", cursor: "pointer", borderRadius: "4px" }}
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => router.push("/register")}
+                  style={{ padding: "8px 16px", backgroundColor: "#1976D2", color: "#fff", border: "none", cursor: "pointer", borderRadius: "4px" }}
+                >
+                  Sign Up
+                </button>
+              </>
+            )}
+          </div>
+        </nav>
 
         <main>{children}</main>
       </body>

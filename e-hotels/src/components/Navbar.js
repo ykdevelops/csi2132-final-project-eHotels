@@ -1,17 +1,11 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useContext } from "react";
+import { UserContext } from "@/context/UserContext";
 
 export default function Navbar() {
     const router = useRouter();
-    const [user, setUser] = useState(null);
-
-    useEffect(() => {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
-    }, []);
+    const { user, setUser } = useContext(UserContext);
 
     const handleLogout = () => {
         localStorage.removeItem("user");
@@ -39,7 +33,6 @@ export default function Navbar() {
             {/* 🔹 Right: Auth Links */}
             <div>
                 {user ? (
-                    // ✅ Show logout button if logged in
                     <>
                         <span style={{ marginRight: "15px", fontSize: "16px" }}>
                             Logged in as: <strong>{user.name} ({user.role})</strong>
@@ -59,7 +52,6 @@ export default function Navbar() {
                         </button>
                     </>
                 ) : (
-                    // ✅ Show login/signup buttons if not logged in
                     <>
                         <button
                             onClick={() => router.push("/login")}

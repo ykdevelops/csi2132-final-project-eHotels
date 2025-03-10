@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
+import {
+    getFirestore,
+    collection,
+    getDocs,
+    query,
+    where
+} from "firebase/firestore";
 
 // ✅ Firebase Configuration
 const firebaseConfig = {
@@ -20,50 +26,44 @@ export async function GET() {
     try {
         console.log("🔥 Fetching all available rooms from Firestore...");
 
-        let allRooms = [];
-        const hotelChainsSnapshot = await getDocs(collection(db, "HotelChain"));
-
-        if (hotelChainsSnapshot.empty) {
-            console.log("🚨 No hotel chains found!");
+        // Step 1: Fetch All Hotels
+        const hotelsSnapshot = await getDocs(collection(db, "Hotel"));
+        if (hotelsSnapshot.empty) {
+            console.log("🚨 No hotels found!");
+            return NextResponse.json([], { status: 200 });
         }
 
-        for (const chainDoc of hotelChainsSnapshot.docs) {
-            console.log(`🔍 Checking hotel chain: ${chainDoc.id} - ${chainDoc.data().name}`);
+        let allRooms = [];
 
-            const chainId = chainDoc.id;
-            const hotelsCollection = collection(db, "HotelChain", chainId, "Hotels");
-            const hotelsSnapshot = await getDocs(hotelsCollection);
+        // Step 2: For each hotel, fetch matching rooms from top-level "Room" collection
+        for (const hotelDoc of hotelsSnapshot.docs) {
+            const hotelData = hotelDoc.data();
+            const hID = hotelData.hotel_ID; // The unique ID assigned in your schema
+            console.log(`🏨 Found hotel: ${hID} - ${hotelData.name}`);
 
-            if (hotelsSnapshot.empty) {
-                console.log(`🚨 No hotels found under chain: ${chainDoc.data().name}`);
+            // Query the "Room" collection for rooms referencing this hotel
+            const roomQuery = query(collection(db, "Room"), where("hotel_ID", "==", hID));
+            const roomsSnapshot = await getDocs(roomQuery);
+
+            if (roomsSnapshot.empty) {
+                console.log(`🚨 No rooms found for hotel: ${hotelData.name}`);
             }
 
-            for (const hotelDoc of hotelsSnapshot.docs) {
-                console.log(`🏨 Found hotel: ${hotelDoc.id} - ${hotelDoc.data().name}`);
+            roomsSnapshot.forEach((roomDoc) => {
+                const rData = roomDoc.data();
+                console.log(`🛏️ Found room: ${rData.room_ID} - Data:`, rData);
 
-                const hotelId = hotelDoc.id;
-                const roomsCollection = collection(db, "HotelChain", chainId, "Hotels", hotelId, "Rooms");
-                const roomsSnapshot = await getDocs(roomsCollection);
-
-                if (roomsSnapshot.empty) {
-                    console.log(`🚨 No rooms found under hotel: ${hotelDoc.data().name}`);
-                }
-
-                roomsSnapshot.forEach((roomDoc) => {
-                    console.log(`🛏️ Found room: ${roomDoc.id} - Data:`, roomDoc.data());
-                    allRooms.push({
-                        id: roomDoc.id,
-                        hotelChain: chainDoc.data().name,
-                        hotelName: hotelDoc.data().name,
-                        ...roomDoc.data(),
-                    });
+                allRooms.push({
+                    id: roomDoc.id,         // Firestore doc ID
+                    hotelID: hID,           // The hotel this room belongs to
+                    hotelName: hotelData.name,
+                    ...rData,               // e.g. capacity, price, view, etc.
                 });
-            }
+            });
         }
 
         console.log(`✅ Total rooms fetched: ${allRooms.length}`);
-        return NextResponse.json(allRooms);
-
+        return NextResponse.json(allRooms, { status: 200 });
     } catch (error) {
         console.error("❌ Error fetching rooms:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

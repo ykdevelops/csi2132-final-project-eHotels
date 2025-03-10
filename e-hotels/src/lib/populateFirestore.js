@@ -34,10 +34,92 @@ const hotels = [
 
 // ✅ Sample Rooms (3 rooms per hotel)
 const rooms = [
-    { capacity: 2, price: 150, view: "sea", isAvailable: true, amenities: ["TV", "WiFi"] },
-    { capacity: 3, price: 200, view: "city", isAvailable: true, amenities: ["TV", "WiFi", "Balcony"] },
-    { capacity: 4, price: 250, view: "mountain", isAvailable: false, amenities: ["TV", "WiFi", "Hot Tub"] },
+    {
+        bookingType: "Booking", // Booking or Renting
+        startDate: "2025-04-01", // Example start date
+        endDate: "2025-04-05", // Example end date
+        capacity: 2,
+        area: "Downtown",
+        hotelChain: "Summit Grand Hotels",
+        hotelCategory: "Luxury",
+        totalRooms: 100, // Total rooms in the hotel
+        price: 150,
+        view: "sea",
+        isAvailable: true,
+        amenities: ["TV", "WiFi"],
+    },
+    {
+        bookingType: "Renting",
+        startDate: "2025-05-10",
+        endDate: "2025-05-15",
+        capacity: 3,
+        area: "City Center",
+        hotelChain: "Evergreen Stays",
+        hotelCategory: "Budget",
+        totalRooms: 50,
+        price: 200,
+        view: "city",
+        isAvailable: true,
+        amenities: ["TV", "WiFi", "Balcony"],
+    },
+    {
+        bookingType: "Booking",
+        startDate: "2025-06-20",
+        endDate: "2025-06-25",
+        capacity: 4,
+        area: "Mountain Side",
+        hotelChain: "BlueWave Hospitality",
+        hotelCategory: "Business",
+        totalRooms: 75,
+        price: 250,
+        view: "mountain",
+        isAvailable: false,
+        amenities: ["TV", "WiFi", "Hot Tub"],
+    },
+    {
+        bookingType: "Renting",
+        startDate: "2025-07-10",
+        endDate: "2025-07-15",
+        capacity: 1,
+        area: "Beachfront",
+        hotelChain: "Skyline Suites & Resorts",
+        hotelCategory: "Luxury",
+        totalRooms: 120,
+        price: 180,
+        view: "ocean",
+        isAvailable: true,
+        amenities: ["TV", "WiFi", "Mini-Fridge"],
+    },
+    {
+        bookingType: "Booking",
+        startDate: "2025-08-05",
+        endDate: "2025-08-10",
+        capacity: 5,
+        area: "Suburban",
+        hotelChain: "Royal Haven Inn",
+        hotelCategory: "Budget",
+        totalRooms: 30,
+        price: 300,
+        view: "garden",
+        isAvailable: true,
+        amenities: ["TV", "WiFi", "Kitchenette", "Private Deck"],
+    },
+    {
+        bookingType: "Renting",
+        startDate: "2025-09-15",
+        endDate: "2025-09-20",
+        capacity: 2,
+        area: "Lakeview",
+        hotelChain: "Grand Luxe Hotels",
+        hotelCategory: "Business",
+        totalRooms: 90,
+        price: 160,
+        view: "lake",
+        isAvailable: true,
+        amenities: ["TV", "WiFi", "Jacuzzi"],
+    },
 ];
+
 
 // ✅ Sample Employees (3 employees)
 const employees = [

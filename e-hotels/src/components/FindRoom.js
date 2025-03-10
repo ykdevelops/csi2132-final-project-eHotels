@@ -28,7 +28,7 @@ export default function FindRoom({ goBack }) {
     useEffect(() => {
         const fetchRooms = async () => {
             try {
-                const response = await fetch("/api/rooms");
+                const response = await fetch("/api/room/availableRooms");
                 if (!response.ok) throw new Error("Failed to fetch rooms.");
                 const data = await response.json();
                 setRooms(data);

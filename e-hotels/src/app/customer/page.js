@@ -1,92 +1,50 @@
 "use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { db, collection, query, where, getDocs } from "@/lib/firebase";
-import { Container, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
+import { useState } from "react";
+import { Container, Typography, Card, CardActionArea, CardContent, Grid, Button } from "@mui/material";
+import BookingHistory from "@/components/BookingHistory";
+import FindRoom from "@/components/FindRoom";
 
 export default function CustomerPage() {
-    const router = useRouter();
-    const [user, setUser] = useState(null);
-    const [bookings, setBookings] = useState([]);
-
-    useEffect(() => {
-        const storedUser = localStorage.getItem("user");
-        if (!storedUser) {
-            router.push("/login"); // 🔹 Redirect if not logged in
-            return;
-        }
-
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-
-        // 🔹 Fetch customer bookings
-        const fetchBookings = async () => {
-            try {
-                console.log("🔥 Fetching bookings for:", userData.email);
-                const bookingsRef = collection(db, "Bookings");
-                const q = query(bookingsRef, where("customerEmail", "==", userData.email));
-                const bookingsSnapshot = await getDocs(q);
-
-                const customerBookings = bookingsSnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data(),
-                }));
-
-                console.log("📋 Booking Data:", customerBookings);
-                setBookings(customerBookings);
-            } catch (error) {
-                console.error("❌ Error fetching bookings:", error);
-            }
-        };
-
-        fetchBookings();
-    }, [router]);
+    const [selectedComponent, setSelectedComponent] = useState(null);
 
     return (
-        <Container maxWidth="md" style={{ textAlign: "center", marginTop: "40px" }}>
-            {user ? (
-                <>
-                    <Typography variant="h4">Welcome, {user.name}!</Typography>
-                    <Typography variant="body1" color="textSecondary">
-                        Here are your current and past bookings.
-                    </Typography>
+        <Container maxWidth="lg" style={{ marginTop: "40px", textAlign: "center" }}>
+            <Typography variant="h4">Customer Dashboard</Typography>
+            <Typography variant="body1" color="textSecondary">Choose an option below:</Typography>
 
-                    {/* 🔹 Bookings Table */}
-                    <TableContainer component={Paper} style={{ marginTop: "30px" }}>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell><strong>Hotel</strong></TableCell>
-                                    <TableCell><strong>Room</strong></TableCell>
-                                    <TableCell><strong>Check-in</strong></TableCell>
-                                    <TableCell><strong>Check-out</strong></TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {bookings.length > 0 ? (
-                                    bookings.map((booking) => (
-                                        <TableRow key={booking.id}>
-                                            <TableCell>{booking.hotelName}</TableCell>
-                                            <TableCell>Room {booking.roomId}</TableCell>
-                                            <TableCell>{booking.checkInDate}</TableCell>
-                                            <TableCell>{booking.checkOutDate}</TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={4} align="center">
-                                            No bookings yet.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </>
-            ) : (
-                <Typography variant="h5" color="error">Redirecting...</Typography>
+            {/* 🔹 Show Cards if no component is selected */}
+            {!selectedComponent && (
+                <Grid container spacing={3} justifyContent="center" style={{ marginTop: "20px" }}>
+                    <Grid item xs={12} sm={6}>
+                        <Card onClick={() => setSelectedComponent("history")} style={{ cursor: "pointer" }}>
+                            <CardActionArea>
+                                <CardContent>
+                                    <Typography variant="h5">Booking History</Typography>
+                                    <Typography variant="body2" color="textSecondary">
+                                        View your past and current bookings.
+                                    </Typography>
+                                </CardContent>
+                            </CardActionArea>
+                        </Card>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <Card onClick={() => setSelectedComponent("findRoom")} style={{ cursor: "pointer" }}>
+                            <CardActionArea>
+                                <CardContent>
+                                    <Typography variant="h5">Find a Room</Typography>
+                                    <Typography variant="body2" color="textSecondary">
+                                        Browse and book available rooms.
+                                    </Typography>
+                                </CardContent>
+                            </CardActionArea>
+                        </Card>
+                    </Grid>
+                </Grid>
             )}
+
+            {/* 🔹 Show Selected Component with a Back Button */}
+            {selectedComponent === "history" && <BookingHistory goBack={() => setSelectedComponent(null)} />}
+            {selectedComponent === "findRoom" && <FindRoom goBack={() => setSelectedComponent(null)} />}
         </Container>
     );
 }

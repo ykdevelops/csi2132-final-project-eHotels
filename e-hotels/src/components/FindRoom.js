@@ -64,13 +64,23 @@ export default function FindRoom({ goBack }) {
 
     return (
         <Container maxWidth="lg" style={{ marginTop: "40px", textAlign: "center" }}>
-            <Button onClick={goBack} variant="outlined" color="primary" style={{ marginBottom: "20px" }}>Back</Button>
-            <Typography variant="h5">Find a Room</Typography>
+            <Button
+                onClick={goBack}
+                variant="contained"
+                color="secondary"
+                sx={{ mb: 3 }}
+            >
+                ⬅ Back
+            </Button>
 
-            {/* Filters */}
-            <Box display="flex" justifyContent="center" gap={2} mt={3} mb={3} flexWrap="wrap">
+            <Typography variant="h4" fontWeight="bold" gutterBottom>
+                Find a Room
+            </Typography>
+
+            {/* Filters Section */}
+            <Box display="flex" flexWrap="wrap" justifyContent="center" gap={2} mb={4}>
                 {/* Booking Type */}
-                <FormControl style={{ minWidth: 150 }}>
+                <FormControl style={{ minWidth: 170 }}>
                     <InputLabel>Booking Type</InputLabel>
                     <Select value={bookingType} onChange={(e) => setBookingType(e.target.value)}>
                         <MenuItem value="">All</MenuItem>
@@ -86,6 +96,7 @@ export default function FindRoom({ goBack }) {
                     InputLabelProps={{ shrink: true }}
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
+                    style={{ minWidth: 170 }}
                 />
 
                 {/* End Date */}
@@ -95,6 +106,7 @@ export default function FindRoom({ goBack }) {
                     InputLabelProps={{ shrink: true }}
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
+                    style={{ minWidth: 170 }}
                 />
 
                 {/* Capacity */}
@@ -106,8 +118,8 @@ export default function FindRoom({ goBack }) {
                     </Select>
                 </FormControl>
 
-                {/* Area (Dropdown) */}
-                <FormControl style={{ minWidth: 150 }}>
+                {/* Area */}
+                <FormControl style={{ minWidth: 170 }}>
                     <InputLabel>Area</InputLabel>
                     <Select value={area} onChange={(e) => setArea(e.target.value)}>
                         <MenuItem value="">All</MenuItem>
@@ -118,18 +130,15 @@ export default function FindRoom({ goBack }) {
                 </FormControl>
 
                 {/* Hotel Chain */}
-                <FormControl style={{ minWidth: 150 }}>
-                    <InputLabel>Hotel Chain</InputLabel>
-                    <Select value={hotelChain} onChange={(e) => setHotelChain(e.target.value)}>
-                        <MenuItem value="">All</MenuItem>
-                        <MenuItem value="Summit Grand Hotels">Summit Grand Hotels</MenuItem>
-                        <MenuItem value="Evergreen Stays">Evergreen Stays</MenuItem>
-                        <MenuItem value="BlueWave Hospitality">BlueWave Hospitality</MenuItem>
-                    </Select>
-                </FormControl>
+                <TextField
+                    label="Hotel Chain"
+                    value={hotelChain}
+                    onChange={(e) => setHotelChain(e.target.value)}
+                    style={{ minWidth: 170 }}
+                />
 
                 {/* Hotel Category */}
-                <FormControl style={{ minWidth: 150 }}>
+                <FormControl style={{ minWidth: 170 }}>
                     <InputLabel>Hotel Category</InputLabel>
                     <Select value={hotelCategory} onChange={(e) => setHotelCategory(e.target.value)}>
                         <MenuItem value="">All</MenuItem>
@@ -139,50 +148,46 @@ export default function FindRoom({ goBack }) {
                     </Select>
                 </FormControl>
 
-                {/* Total Rooms in Hotel */}
+                {/* Total Rooms */}
                 <TextField
                     label="Total Rooms in Hotel"
                     type="number"
                     value={totalRooms}
                     onChange={(e) => setTotalRooms(e.target.value)}
+                    style={{ minWidth: 170 }}
                 />
 
-                {/* Price Range */}
+                {/* Min & Max Price */}
                 <TextField
                     label="Min Price"
                     type="number"
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value)}
+                    style={{ minWidth: 150 }}
                 />
                 <TextField
                     label="Max Price"
                     type="number"
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(e.target.value)}
+                    style={{ minWidth: 150 }}
                 />
             </Box>
 
             {/* Table of Available Rooms */}
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
                 <Table>
-                    <TableHead>
+                    <TableHead sx={{ backgroundColor: "#f4f4f4" }}>
                         <TableRow>
-                            <TableCell><strong>Hotel</strong></TableCell>
-                            <TableCell><strong>Booking Type</strong></TableCell>
-                            <TableCell><strong>Start Date</strong></TableCell>
-                            <TableCell><strong>End Date</strong></TableCell>
-                            <TableCell><strong>Capacity</strong></TableCell>
-                            <TableCell><strong>Area</strong></TableCell>
-                            <TableCell><strong>Hotel Category</strong></TableCell>
-                            <TableCell><strong>Rooms in Hotel</strong></TableCell>
-                            <TableCell><strong>Price</strong></TableCell>
-                            <TableCell><strong>Book</strong></TableCell>
+                            {["Hotel", "Booking Type", "Start Date", "End Date", "Capacity", "Area", "Hotel Category", "Rooms in Hotel", "Price", "Book"].map(header => (
+                                <TableCell key={header} sx={{ fontWeight: "bold" }}>{header}</TableCell>
+                            ))}
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {filteredRooms.length > 0 ? (
                             filteredRooms.map((room) => (
-                                <TableRow key={room.id}>
+                                <TableRow key={room.id} sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}>
                                     <TableCell>{room.hotelName}</TableCell>
                                     <TableCell>{room.bookingType}</TableCell>
                                     <TableCell>{room.startDate}</TableCell>

@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import { Container, Typography, Card, CardActionArea, CardContent, Grid, Button } from "@mui/material";
-import BookingHistory from "@/components/BookingHistory";
-import FindRoom from "@/components/FindRoom";
+
+import FindRoom from "@/components/customer/FindRoom";
 
 export default function CustomerPage() {
     const [selectedComponent, setSelectedComponent] = useState(null);
@@ -15,19 +15,9 @@ export default function CustomerPage() {
             {/* 🔹 Show Cards if no component is selected */}
             {!selectedComponent && (
                 <Grid container spacing={3} justifyContent="center" style={{ marginTop: "20px" }}>
-                    <Grid item xs={12} sm={6}>
-                        <Card onClick={() => setSelectedComponent("history")} style={{ cursor: "pointer" }}>
-                            <CardActionArea>
-                                <CardContent>
-                                    <Typography variant="h5">Booking History</Typography>
-                                    <Typography variant="body2" color="textSecondary">
-                                        View your past and current bookings.
-                                    </Typography>
-                                </CardContent>
-                            </CardActionArea>
-                        </Card>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
+
+
+                    <Grid item xs={12} sm={6} md={4}>
                         <Card onClick={() => setSelectedComponent("findRoom")} style={{ cursor: "pointer" }}>
                             <CardActionArea>
                                 <CardContent>
@@ -43,8 +33,16 @@ export default function CustomerPage() {
             )}
 
             {/* 🔹 Show Selected Component with a Back Button */}
-            {selectedComponent === "history" && <BookingHistory goBack={() => setSelectedComponent(null)} />}
-            {selectedComponent === "findRoom" && <FindRoom goBack={() => setSelectedComponent(null)} />}
+            {selectedComponent && (
+                <Button
+                    onClick={() => setSelectedComponent(null)}
+                    variant="outlined"
+                    color="primary"
+                    style={{ margin: "20px 0" }}>
+                    Back
+                </Button>
+            )}
+            {selectedComponent === "findRoom" && <FindRoom />}
         </Container>
     );
 }

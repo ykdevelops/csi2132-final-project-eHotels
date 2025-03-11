@@ -205,11 +205,26 @@ const rentArchive = [
     { ra_ID: "ra2", date: "2025-05-22" },
 ];
 
-// ✅ Book Relationship (cus-ID, room-ID, ba-ID)
+// ✅ Book Relationship (cus-ID, room-ID, ba-ID, check-in, check-out)
 const book = [
-    { book_ID: "bk1", cus_ID: "c1", room_ID: "r1", ba_ID: "b1" },
-    { book_ID: "bk2", cus_ID: "c2", room_ID: "r2", ba_ID: "b2" },
+    {
+        book_ID: "bk1",
+        cus_ID: "c1",
+        room_ID: "r1",
+        ba_ID: "b1",
+        checkInDate: "2025-03-01",
+        checkOutDate: "2025-03-05"
+    },
+    {
+        book_ID: "bk2",
+        cus_ID: "c2",
+        room_ID: "r2",
+        ba_ID: "b2",
+        checkInDate: "2025-04-10",
+        checkOutDate: "2025-04-15"
+    },
 ];
+
 
 // ✅ Rent Relationship
 // Active rentals might also exist outside the archive

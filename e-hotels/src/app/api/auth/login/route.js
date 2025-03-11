@@ -27,7 +27,7 @@ async function findUserByEmail(email) {
         const userData = doc.data();
         if (userData.email === email) {
             console.log(`✅ User found in Employee collection: ${email}`);
-            return { ...userData, role: "Employee" };
+            return { ...userData, role: "Employee" }; // Employees don't have cus_ID
         }
     }
 
@@ -37,7 +37,13 @@ async function findUserByEmail(email) {
         const userData = doc.data();
         if (userData.email === email) {
             console.log(`✅ User found in Customer collection: ${email}`);
-            return { ...userData, role: "Customer" };
+
+            // Ensure `cus_ID` is included for Customers
+            return {
+                ...userData,
+                role: "Customer",
+                cus_ID: userData.cus_ID || null, // Ensure cus_ID is present
+            };
         }
     }
 
@@ -68,13 +74,21 @@ export async function POST(req) {
         }
 
         console.log(`✅ Login successful for "${email}"`);
+
+        // ✅ Step 3: Ensure `cus_ID` is included for Customers
+        const userResponse = {
+            name: userData.name,
+            email: userData.email,
+            role: userData.role,
+        };
+
+        if (userData.role === "Customer" && userData.cus_ID) {
+            userResponse.cus_ID = userData.cus_ID;
+        }
+
         return NextResponse.json({
             message: "Login successful",
-            user: {
-                name: userData.name,
-                email: userData.email,
-                role: userData.role,
-            }
+            user: userResponse,
         });
 
     } catch (error) {

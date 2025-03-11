@@ -11,17 +11,16 @@ export default function FindRoom({ goBack }) {
     const router = useRouter();
     const [rooms, setRooms] = useState([]);
     const [filteredRooms, setFilteredRooms] = useState([]);
-    const [areas, setAreas] = useState([]);
+    const [areas, setAreas] = useState(["Downtown", "Suburban", "Countryside"]);
+    const [hotelChains, setHotelChains] = useState([]);
 
     // Filters
-    const [bookingType, setBookingType] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [capacity, setCapacity] = useState("");
     const [area, setArea] = useState("");
     const [hotelChain, setHotelChain] = useState("");
-    const [hotelCategory, setHotelCategory] = useState("");
-    const [totalRooms, setTotalRooms] = useState("");
+    const [hotelRating, setHotelRating] = useState("");
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
 
@@ -34,9 +33,9 @@ export default function FindRoom({ goBack }) {
                 setRooms(data);
                 setFilteredRooms(data);
 
-                // Extract unique area values for dropdown
-                const uniqueAreas = [...new Set(data.map(room => room.area))].filter(Boolean);
-                setAreas(uniqueAreas);
+                // Extract unique hotel chain names for dropdown
+                const uniqueHotelChains = [...new Set(data.map(room => room.hotelChain))].filter(Boolean);
+                setHotelChains(uniqueHotelChains);
             } catch (error) {
                 console.error("❌ Error fetching rooms:", error);
             }
@@ -48,19 +47,42 @@ export default function FindRoom({ goBack }) {
     useEffect(() => {
         let updatedRooms = rooms;
 
-        if (bookingType) updatedRooms = updatedRooms.filter(room => room.bookingType === bookingType);
-        if (startDate) updatedRooms = updatedRooms.filter(room => new Date(room.startDate) >= new Date(startDate));
-        if (endDate) updatedRooms = updatedRooms.filter(room => new Date(room.endDate) <= new Date(endDate));
+        // ✅ Check date availability
+        if (startDate || endDate) {
+            updatedRooms = updatedRooms.filter(room => {
+                if (!room.bookedDates || room.bookedDates.length === 0) {
+                    return true; // No bookings, so it's available
+                }
+
+                // Convert user input dates to Date objects
+                const userStart = startDate ? new Date(startDate) : null;
+                const userEnd = endDate ? new Date(endDate) : null;
+
+                // Check if the selected dates overlap with booked dates
+                return !room.bookedDates.some(({ startDate, endDate }) => {
+                    const bookedStart = new Date(startDate);
+                    const bookedEnd = new Date(endDate);
+
+                    return (
+                        (userStart && userStart <= bookedEnd && userStart >= bookedStart) ||
+                        (userEnd && userEnd >= bookedStart && userEnd <= bookedEnd) ||
+                        (userStart && userEnd && userStart <= bookedStart && userEnd >= bookedEnd)
+                    );
+                });
+            });
+        }
+
+        // ✅ Apply other filters
         if (capacity) updatedRooms = updatedRooms.filter(room => room.capacity === parseInt(capacity));
         if (area) updatedRooms = updatedRooms.filter(room => room.area === area);
-        if (hotelChain) updatedRooms = updatedRooms.filter(room => room.hotelName === hotelChain);
-        if (hotelCategory) updatedRooms = updatedRooms.filter(room => room.hotelCategory === hotelCategory);
-        if (totalRooms) updatedRooms = updatedRooms.filter(room => room.totalRooms === parseInt(totalRooms));
+        if (hotelChain) updatedRooms = updatedRooms.filter(room => room.hotelChain === hotelChain);
+        if (hotelRating) updatedRooms = updatedRooms.filter(room => room.hotelRating === parseInt(hotelRating));
         if (minPrice) updatedRooms = updatedRooms.filter(room => room.price >= parseInt(minPrice));
         if (maxPrice) updatedRooms = updatedRooms.filter(room => room.price <= parseInt(maxPrice));
 
         setFilteredRooms(updatedRooms);
-    }, [bookingType, startDate, endDate, capacity, area, hotelChain, hotelCategory, totalRooms, minPrice, maxPrice, rooms]);
+    }, [startDate, endDate, capacity, area, hotelChain, hotelRating, minPrice, maxPrice, rooms]);
+
 
     const handleBooking = (roomId) => {
         console.log(`🔹 Booking room: ${roomId}`);
@@ -86,15 +108,6 @@ export default function FindRoom({ goBack }) {
                             Filters
                         </Typography>
                         <Divider style={{ marginBottom: "20px" }} />
-
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel>Booking Type</InputLabel>
-                            <Select value={bookingType} onChange={(e) => setBookingType(e.target.value)}>
-                                <MenuItem value="">All</MenuItem>
-                                <MenuItem value="Booking">Booking</MenuItem>
-                                <MenuItem value="Renting">Renting</MenuItem>
-                            </Select>
-                        </FormControl>
 
                         <TextField
                             label="Start Date"
@@ -134,6 +147,24 @@ export default function FindRoom({ goBack }) {
                             </Select>
                         </FormControl>
 
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel>Hotel Chain</InputLabel>
+                            <Select value={hotelChain} onChange={(e) => setHotelChain(e.target.value)}>
+                                <MenuItem value="">All</MenuItem>
+                                {hotelChains.map(chain => (
+                                    <MenuItem key={chain} value={chain}>{chain}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel>Hotel Rating</InputLabel>
+                            <Select value={hotelRating} onChange={(e) => setHotelRating(e.target.value)}>
+                                <MenuItem value="">All</MenuItem>
+                                {[1, 2, 3, 4, 5].map(num => <MenuItem key={num} value={num}>{num} Stars</MenuItem>)}
+                            </Select>
+                        </FormControl>
+
                         <TextField
                             label="Min Price"
                             type="number"
@@ -159,7 +190,7 @@ export default function FindRoom({ goBack }) {
                         <Table>
                             <TableHead sx={{ backgroundColor: "#f4f4f4" }}>
                                 <TableRow>
-                                    {["Hotel", "Booking Type", "Start Date", "End Date", "Capacity", "Price", "Actions"].map(header => (
+                                    {["Hotel", "Hotel Chain", "Area", "Capacity", "Rating", "Price", "Actions"].map(header => (
                                         <TableCell key={header} sx={{ fontWeight: "bold" }}>{header}</TableCell>
                                     ))}
                                 </TableRow>
@@ -169,10 +200,10 @@ export default function FindRoom({ goBack }) {
                                     filteredRooms.map((room) => (
                                         <TableRow key={room.id} sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}>
                                             <TableCell>{room.hotelName}</TableCell>
-                                            <TableCell>{room.bookingType}</TableCell>
-                                            <TableCell>{room.startDate}</TableCell>
-                                            <TableCell>{room.endDate}</TableCell>
+                                            <TableCell>{room.hotelChain}</TableCell>
+                                            <TableCell>{room.area}</TableCell>
                                             <TableCell>{room.capacity}</TableCell>
+                                            <TableCell>{room.hotelRating} ⭐</TableCell>
                                             <TableCell>${room.price}</TableCell>
                                             <TableCell>
                                                 <Box display="flex" justifyContent="center" gap={2}>

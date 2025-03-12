@@ -52,32 +52,40 @@ const hotels = [
 ];
 
 
-// ✅ Rooms (5 per hotel with variation)
 const amenitiesList = [
-    "WiFi,TV,Balcony",
-    "WiFi,TV",
-    "WiFi,TV,Mini Fridge",
-    "WiFi,TV,Balcony,Hot Tub",
-    "WiFi,TV,Work Desk"
+    ["WiFi", "TV", "Balcony"],
+    ["WiFi", "TV"],
+    ["WiFi", "TV", "Mini Fridge"],
+    ["WiFi", "TV", "Balcony", "Hot Tub"],
+    ["WiFi", "TV", "Work Desk"]
 ];
 
 const rooms = [];
+
 hotels.forEach((hotel, index) => {
     for (let i = 1; i <= 5; i++) {
         rooms.push({
             room_ID: `r${index + 1}_${i}`,
             hotel_ID: hotel.hotel_ID,
-            capacity: Math.floor(Math.random() * 4) + 1, // Random capacity between 1 and 4
-            price: 80 + Math.floor(Math.random() * 121) + i * 10, // Price between 80 and 200 with variation
-            view: Math.random() > 0.5, // 50% chance of having a view
+            capacity: Math.floor(Math.random() * 4) + 1, // Random capacity (1-4 people)
+            price: 80 + Math.floor(Math.random() * 121) + i * 10, // Price varies (80-200)
+            view: Math.random() > 0.5, // 50% chance of a scenic view
             isAvailable: true,
-            extendible: Math.random() > 0.5, // 50% chance of being extendible
-            amenities: amenitiesList[i - 1], // Vary amenities
-            issues: Math.random() > 0.85 ? "Minor plumbing issue" : "", // 15% chance of an issue
-            bookedDates: [],
+            extendible: Math.random() > 0.5 ? "Yes" : "No", // Store as readable text
+            amenities: amenitiesList[i - 1], // Now stored as an array
+            issues: Math.random() > 0.85 ? "Minor plumbing issue" : "", // 15% chance of issue
+            bookedDates: Math.random() > 0.2 ? [ // 20% chance to have bookings
+                {
+                    book_ID: `book_${Date.now() + i}`,
+                    startDate: "2025-03-12",
+                    endDate: "2025-03-13"
+                }
+            ] : [] // Ensuring correct structure
         });
     }
 });
+
+
 
 
 // ✅ Customers

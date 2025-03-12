@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react"; // ✅ Import useState and useEffect
+import { useState, useEffect } from "react";
 import {
-    Container, Typography, Table, TableBody, TableCell, TableContainer, TableRow,
+    Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
     Paper, CircularProgress, Box
 } from "@mui/material";
 
@@ -43,16 +43,26 @@ export default function EditCustomers() {
                     </Box>
                 ) : (
                     <Table>
+                        {/* ✅ Always Render Table Headers */}
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>ID</TableCell>
+                                <TableCell>Email</TableCell>
+                                <TableCell>Name</TableCell>
+                            </TableRow>
+                        </TableHead>
                         <TableBody>
-                            {data.length > 0 ? data.map((item) => (
-                                <TableRow key={item.id}>
-                                    {Object.values(item).map((val, index) => (
-                                        <TableCell key={index}>{JSON.stringify(val)}</TableCell>
-                                    ))}
-                                </TableRow>
-                            )) : (
+                            {data.length > 0 ? (
+                                data.map((customer) => (
+                                    <TableRow key={customer.id}>
+                                        <TableCell>{customer.id}</TableCell>
+                                        <TableCell>{customer.email || "N/A"}</TableCell>
+                                        <TableCell>{customer.name || "N/A"}</TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
                                 <TableRow>
-                                    <TableCell colSpan="100%" style={{ textAlign: "center" }}>
+                                    <TableCell colSpan="3" style={{ textAlign: "center" }}>
                                         No customers found.
                                     </TableCell>
                                 </TableRow>

@@ -52,27 +52,26 @@ export default function EditEmployees() {
                     </Box>
                 ) : (
                     <Table>
+                        {/* ✅ Always Render Table Headers */}
                         <TableHead>
                             <TableRow>
-                                {data.length > 0 &&
-                                    Object.keys(data[0]).map((key) => (
-                                        <TableCell key={key}>{key.toUpperCase()}</TableCell>
-                                    ))
-                                }
+                                <TableCell>ID</TableCell>
+                                <TableCell>Email</TableCell>
+                                <TableCell>Name</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {data.length > 0 ? (
-                                data.map((item) => (
-                                    <TableRow key={item.id}>
-                                        {Object.values(item).map((val, index) => (
-                                            <TableCell key={index}>{JSON.stringify(val)}</TableCell>
-                                        ))}
+                                data.map((employee) => (
+                                    <TableRow key={employee.id}>
+                                        <TableCell>{employee.id}</TableCell>
+                                        <TableCell>{employee.email || "N/A"}</TableCell>
+                                        <TableCell>{employee.name || "N/A"}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan="100%" style={{ textAlign: "center" }}>
+                                    <TableCell colSpan="3" style={{ textAlign: "center" }}>
                                         No employees found.
                                     </TableCell>
                                 </TableRow>

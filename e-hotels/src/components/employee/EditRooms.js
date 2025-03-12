@@ -3,17 +3,15 @@
 import { useState, useEffect } from "react";
 import {
     Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Paper, Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle,
-    IconButton, CircularProgress, Box
+    Paper, CircularProgress, Box
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
+import RoomModal from "./RoomModal"; // Import the new modal component
 
 export default function EditRooms() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [openModal, setOpenModal] = useState(false);
-    const [editingItem, setEditingItem] = useState(null);
+    const [selectedRoom, setSelectedRoom] = useState(null);
 
     // ✅ Fetch Rooms from API
     useEffect(() => {
@@ -36,72 +34,27 @@ export default function EditRooms() {
         setLoading(false);
     };
 
-    // ✅ Open Add/Edit Modal
-    const handleOpenModal = (item = null) => {
-        setEditingItem(item);
+    // ✅ Open Modal when a row is clicked
+    const handleOpenModal = (room) => {
+        setSelectedRoom(room);
         setOpenModal(true);
     };
 
-    // ✅ Handle Save (Add/Update Room)
-    const handleSave = async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const newItem = Object.fromEntries(formData.entries());
-
-        const method = editingItem ? "PUT" : "POST";
-        const requestBody = {
-            type: "rooms",
-            data: newItem,
-        };
-
-        if (editingItem) {
-            requestBody.id = editingItem.id;
-        }
-
-        try {
-            const response = await fetch("/api/employee/editDatabase", {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(requestBody),
-            });
-
-            const result = await response.json();
-            if (response.ok) {
-                alert(`Room ${editingItem ? "updated" : "added"} successfully`);
-                fetchRoomData();
-            } else {
-                alert(`Error: ${result.error}`);
-            }
-        } catch (error) {
-            console.error("❌ Error saving room data:", error);
-            alert("Failed to save entry.");
-        }
-
+    // ✅ Close Modal
+    const handleCloseModal = () => {
         setOpenModal(false);
+        setSelectedRoom(null);
     };
 
-    // ✅ Handle Delete Room
-    const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this room?")) return;
-
-        try {
-            const response = await fetch("/api/employee/editDatabase", {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "rooms", id }),
-            });
-
-            const result = await response.json();
-            if (response.ok) {
-                alert("Room deleted successfully");
-                fetchRoomData();
-            } else {
-                alert(`Error: ${result.error}`);
-            }
-        } catch (error) {
-            console.error("❌ Error deleting room:", error);
-            alert("Failed to delete entry.");
+    // ✅ Format Data for Table Display
+    const formatValue = (val, key) => {
+        if (key === "view" || key === "extendible") {
+            return val ? "Yes" : "No";
         }
+        if (key === "bookedDates" && Array.isArray(val)) {
+            return val.length > 0 ? `${val[0].startDate} to ${val[0].endDate}` : "None";
+        }
+        return val || "—";
     };
 
     return (
@@ -120,33 +73,28 @@ export default function EditRooms() {
                         <TableHead>
                             <TableRow>
                                 {data.length > 0 &&
-                                    Object.keys(data[0]).map((key) => (
-                                        <TableCell key={key}>{key.toUpperCase()}</TableCell>
-                                    ))
+                                    Object.keys(data[0])
+                                        .slice(0, 6) // ✅ Only Show 6 Columns
+                                        .map((key) => (
+                                            <TableCell key={key}>{key.toUpperCase()}</TableCell>
+                                        ))
                                 }
-                                <TableCell>Actions</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {data.length > 0 ? (
                                 data.map((item) => (
-                                    <TableRow key={item.id}>
-                                        {Object.values(item).map((val, index) => (
-                                            <TableCell key={index}>{JSON.stringify(val)}</TableCell>
-                                        ))}
-                                        <TableCell>
-                                            <IconButton onClick={() => handleOpenModal(item)} color="primary">
-                                                <EditIcon />
-                                            </IconButton>
-                                            <IconButton onClick={() => handleDelete(item.id)} color="secondary">
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </TableCell>
+                                    <TableRow key={item.id} hover onClick={() => handleOpenModal(item)} style={{ cursor: "pointer" }}>
+                                        {Object.keys(item)
+                                            .slice(0, 6) // ✅ Only Show 6 Columns
+                                            .map((key) => (
+                                                <TableCell key={key}>{formatValue(item[key], key)}</TableCell>
+                                            ))}
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan="100%" style={{ textAlign: "center" }}>
+                                    <TableCell colSpan={6} style={{ textAlign: "center" }}>
                                         No rooms found.
                                     </TableCell>
                                 </TableRow>
@@ -156,9 +104,13 @@ export default function EditRooms() {
                 )}
             </TableContainer>
 
-            <Button variant="contained" color="primary" onClick={() => handleOpenModal()} style={{ marginTop: "20px" }}>
-                Add New Room
-            </Button>
+            {/* Room Details Modal Component */}
+            <RoomModal
+                open={openModal}
+                room={selectedRoom}
+                onClose={handleCloseModal}
+                refreshData={fetchRoomData}
+            />
         </Container>
     );
 }

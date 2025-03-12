@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
+import {
+    getFirestore,
+    collection,
+    getDocs
+} from "firebase/firestore";
 
 // ✅ Firebase Configuration
 const firebaseConfig = {
@@ -16,20 +20,28 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ✅ Fetch previous bookings
+/**
+ * ✅ GET Request: Fetch all employees from Firestore
+ */
 export async function GET() {
     try {
-        const snapshot = await getDocs(collection(db, "BookArchive"));
-        const today = new Date();
+        console.log("🔍 [GET] Fetching employees data from Firestore...");
+        const querySnapshot = await getDocs(collection(db, "Employee"));
 
-        const bookings = snapshot.docs.map(doc => ({
+        if (querySnapshot.empty) {
+            console.warn("⚠️ [GET] No employees found.");
+        }
+
+        const employees = querySnapshot.docs.map(doc => ({
             id: doc.id,
-            ...doc.data()
-        })).filter(booking => new Date(booking.endDate) < today);
+            ...doc.data(),
+        }));
 
-        return NextResponse.json(bookings, { status: 200 });
+        console.log(`✅ [GET] Successfully fetched ${employees.length} employees.`, employees);
+
+        return NextResponse.json({ success: true, data: employees }, { status: 200 });
     } catch (error) {
-        console.error("❌ Error fetching previous bookings:", error);
+        console.error("❌ [GET] Error fetching employees:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

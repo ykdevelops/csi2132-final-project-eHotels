@@ -2,35 +2,54 @@
 
 import { useState } from "react";
 import { Container, Typography, Grid, Card, CardActionArea, CardContent, Button } from "@mui/material";
-import EditDatabase from "../../components/employee/EditDatabase"; // Import the CRUD component
+import EditRooms from "../../components/employee/EditRooms";
+import EditHotels from "../../components/employee/EditHotels";
+import EditEmployees from "../../components/employee/EditEmployees";
+import EditCustomers from "../../components/employee/EditCustomers";
 
 export default function EmployeeDashboard() {
-    const [isEditing, setIsEditing] = useState(false);
+    const [activeTab, setActiveTab] = useState(null);
+
+    const renderComponent = () => {
+        switch (activeTab) {
+            case "rooms":
+                return <EditRooms />;
+            case "hotels":
+                return <EditHotels />;
+            case "employees":
+                return <EditEmployees />;
+            case "customers":
+                return <EditCustomers />;
+            default:
+                return null;
+        }
+    };
 
     return (
         <Container maxWidth="lg" style={{ textAlign: "center", marginTop: "40px" }}>
-            {!isEditing ? (
+            {!activeTab ? (
                 <>
                     <Typography variant="h4" gutterBottom>Employee Dashboard</Typography>
-                    {/* Single Card for "Edit Database" */}
-                    <Grid container justifyContent="center" style={{ marginTop: "20px" }}>
-                        <Grid item xs={12} sm={6} md={4}>
-                            <Card style={{ cursor: "pointer" }} onClick={() => setIsEditing(true)}>
-                                <CardActionArea>
-                                    <CardContent>
-                                        <Typography variant="h6">Edit Database</Typography>
-                                    </CardContent>
-                                </CardActionArea>
-                            </Card>
-                        </Grid>
+                    <Grid container spacing={3} justifyContent="center" style={{ marginTop: "20px" }}>
+                        {["rooms", "hotels", "employees", "customers"].map((tab) => (
+                            <Grid item xs={12} sm={6} md={4} key={tab}>
+                                <Card style={{ cursor: "pointer" }} onClick={() => setActiveTab(tab)}>
+                                    <CardActionArea>
+                                        <CardContent>
+                                            <Typography variant="h6">Edit {tab.charAt(0).toUpperCase() + tab.slice(1)}</Typography>
+                                        </CardContent>
+                                    </CardActionArea>
+                                </Card>
+                            </Grid>
+                        ))}
                     </Grid>
                 </>
             ) : (
                 <>
-                    <Button onClick={() => setIsEditing(false)} variant="outlined" color="primary" style={{ marginBottom: "20px" }}>
+                    <Button onClick={() => setActiveTab(null)} variant="outlined" color="primary" style={{ marginBottom: "20px" }}>
                         Back
                     </Button>
-                    <EditDatabase />
+                    {renderComponent()}
                 </>
             )}
         </Container>

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
+import {
+    getFirestore, collection, getDocs
+} from "firebase/firestore";
 
 // ✅ Firebase Configuration
 const firebaseConfig = {
@@ -16,20 +18,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ✅ Fetch current rentals
+/**
+ * ✅ GET Request: Fetch all customers from Firestore
+ */
 export async function GET() {
     try {
-        const snapshot = await getDocs(collection(db, "Rent"));
-        const today = new Date();
+        console.log("🔍 [GET] Fetching all customers from Firestore...");
 
-        const rentals = snapshot.docs.map(doc => ({
+        const querySnapshot = await getDocs(collection(db, "Customer"));
+        if (querySnapshot.empty) {
+            console.warn("⚠️ [GET] No customer records found.");
+        }
+
+        const customers = querySnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
-        })).filter(rental => new Date(rental.endDate) >= today);
+        }));
 
-        return NextResponse.json(rentals, { status: 200 });
+        console.log(`✅ [GET] Successfully fetched ${customers.length} customers.`);
+        return NextResponse.json({ success: true, data: customers }, { status: 200 });
     } catch (error) {
-        console.error("❌ Error fetching current rentals:", error);
+        console.error("❌ [GET] Error fetching customers:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

@@ -1,8 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
-import { Paper, Typography, Divider, TextField, MenuItem, Select, FormControl, InputLabel, Box } from "@mui/material";
+import { Paper, Typography, Divider, TextField, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 
-export default function RoomFilter({ filters, setFilters }) {
+export default function RoomFilter({ filters, setFilters, dateError }) {
     // Extracting filter values from parent state
     const { startDate, endDate, capacity, area, hotelChain, hotelRating, minPrice, maxPrice, hotelChains } = filters;
 
@@ -16,11 +15,31 @@ export default function RoomFilter({ filters, setFilters }) {
             <Typography variant="h6" gutterBottom>Filters</Typography>
             <Divider style={{ marginBottom: "20px" }} />
 
-            {/* Date Filters */}
-            <TextField label="Start Date" type="date" InputLabelProps={{ shrink: true }} value={startDate} onChange={(e) => handleChange("startDate", e.target.value)} fullWidth margin="normal" />
-            <TextField label="End Date" type="date" InputLabelProps={{ shrink: true }} value={endDate} onChange={(e) => handleChange("endDate", e.target.value)} fullWidth margin="normal" />
+            {/* ✅ Date Filters with Error Handling */}
+            <TextField
+                label="Start Date"
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={startDate}
+                onChange={(e) => handleChange("startDate", e.target.value)}
+                fullWidth
+                margin="normal"
+                error={dateError && !startDate} // Turn red if empty
+                helperText={dateError && !startDate ? "Start date is required" : ""}
+            />
+            <TextField
+                label="End Date"
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={endDate}
+                onChange={(e) => handleChange("endDate", e.target.value)}
+                fullWidth
+                margin="normal"
+                error={dateError && !endDate} // Turn red if empty
+                helperText={dateError && !endDate ? "End date is required" : ""}
+            />
 
-            {/* Capacity Filter */}
+            {/* ✅ Capacity Filter */}
             <FormControl fullWidth margin="normal">
                 <InputLabel>Capacity</InputLabel>
                 <Select value={capacity} onChange={(e) => handleChange("capacity", e.target.value)} displayEmpty>
@@ -29,7 +48,7 @@ export default function RoomFilter({ filters, setFilters }) {
                 </Select>
             </FormControl>
 
-            {/* Area Filter */}
+            {/* ✅ Area Filter */}
             <FormControl fullWidth margin="normal">
                 <InputLabel>Area</InputLabel>
                 <Select value={area} onChange={(e) => handleChange("area", e.target.value)} displayEmpty>
@@ -40,7 +59,7 @@ export default function RoomFilter({ filters, setFilters }) {
                 </Select>
             </FormControl>
 
-            {/* Hotel Chain Filter */}
+            {/* ✅ Hotel Chain Filter */}
             <FormControl fullWidth margin="normal">
                 <InputLabel>Hotel Chain</InputLabel>
                 <Select value={hotelChain} onChange={(e) => handleChange("hotelChain", e.target.value)} displayEmpty>
@@ -51,7 +70,7 @@ export default function RoomFilter({ filters, setFilters }) {
                 </Select>
             </FormControl>
 
-            {/* Hotel Rating Filter */}
+            {/* ✅ Hotel Rating Filter */}
             <FormControl fullWidth margin="normal">
                 <InputLabel>Hotel Rating</InputLabel>
                 <Select value={hotelRating} onChange={(e) => handleChange("hotelRating", e.target.value)} displayEmpty>
@@ -62,9 +81,23 @@ export default function RoomFilter({ filters, setFilters }) {
                 </Select>
             </FormControl>
 
-            {/* Price Filters */}
-            <TextField label="Min Price" type="number" value={minPrice} onChange={(e) => handleChange("minPrice", e.target.value)} fullWidth margin="normal" />
-            <TextField label="Max Price" type="number" value={maxPrice} onChange={(e) => handleChange("maxPrice", e.target.value)} fullWidth margin="normal" />
+            {/* ✅ Price Filters */}
+            <TextField
+                label="Min Price"
+                type="number"
+                value={minPrice}
+                onChange={(e) => handleChange("minPrice", e.target.value)}
+                fullWidth
+                margin="normal"
+            />
+            <TextField
+                label="Max Price"
+                type="number"
+                value={maxPrice}
+                onChange={(e) => handleChange("maxPrice", e.target.value)}
+                fullWidth
+                margin="normal"
+            />
         </Paper>
     );
 }

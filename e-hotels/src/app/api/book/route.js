@@ -5,6 +5,9 @@ import {
     collection,
     doc,
     setDoc,
+    getDoc,
+    updateDoc,
+    arrayUnion,
     serverTimestamp
 } from "firebase/firestore";
 
@@ -25,19 +28,47 @@ const db = getFirestore(app);
 export async function POST(req) {
     try {
         const body = await req.json();
-        const { cus_ID, room_ID, startDate, endDate } = body;
+        const { rent_ID, room_ID, startDate, endDate } = body;
 
-        if (!cus_ID || !room_ID || !startDate || !endDate) {
+        if (!rent_ID || !room_ID || !startDate || !endDate) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        // ✅ Generate a unique book ID
+        // ✅ Generate a unique book_ID
         const book_ID = `book_${Date.now()}`;
+
+        // ✅ Check if the room exists
+        const roomRef = doc(db, "Room", room_ID);
+        const roomSnap = await getDoc(roomRef);
+
+        if (!roomSnap.exists()) {
+            return NextResponse.json({ error: "Room not found" }, { status: 404 });
+        }
+
+        const roomData = roomSnap.data();
+
+        // ✅ Check for overlapping bookings
+        const isOverlap = roomData.bookedDates?.some(({ startDate: bookedStart, endDate: bookedEnd }) => {
+            const bookedStartDate = new Date(bookedStart);
+            const bookedEndDate = new Date(bookedEnd);
+            const newStartDate = new Date(startDate);
+            const newEndDate = new Date(endDate);
+
+            return (
+                (newStartDate <= bookedEndDate && newStartDate >= bookedStartDate) ||
+                (newEndDate >= bookedStartDate && newEndDate <= bookedEndDate) ||
+                (newStartDate <= bookedStartDate && newEndDate >= bookedEndDate)
+            );
+        });
+
+        if (isOverlap) {
+            return NextResponse.json({ error: "Room is already booked for these dates" }, { status: 409 });
+        }
 
         // ✅ Booking data
         const bookingData = {
             book_ID,
-            cus_ID,
+            rent_ID,
             room_ID,
             startDate,
             endDate,
@@ -49,6 +80,15 @@ export async function POST(req) {
 
         // ✅ Add to `BookArchive` collection (backup storage)
         await setDoc(doc(db, "BookArchive", book_ID), bookingData);
+
+        // ✅ Update Room document to add booked dates
+        await updateDoc(roomRef, {
+            bookedDates: arrayUnion({
+                book_ID,
+                startDate,
+                endDate,
+            }),
+        });
 
         return NextResponse.json({ success: true, book_ID }, { status: 201 });
     } catch (error) {

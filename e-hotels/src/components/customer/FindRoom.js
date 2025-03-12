@@ -175,12 +175,40 @@ export default function FindRoom() {
 
                 {/* Action Buttons */}
                 <DialogActions>
-                    <Button color="secondary" onClick={() => setSelectedRoom(null)} variant="outlined">
-                        Return
-                    </Button>
-                    <Button color="primary" variant="contained">
+                    <Button
+                        color="primary"
+                        variant="contained"
+                        onClick={async () => {
+                            if (!selectedRoom) return;
+
+                            try {
+                                // ✅ Call API to book room
+                                const response = await fetch("/api/book", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        rent_ID: `rent_${Date.now()}`, // Unique rent ID
+                                        room_ID: selectedRoom.room_ID,
+                                        startDate: filters.startDate,
+                                        endDate: filters.endDate,
+                                    }),
+                                });
+
+                                const result = await response.json();
+                                if (!response.ok) {
+                                    throw new Error(result.error || "Booking failed.");
+                                }
+
+                                alert(`✅ Booking successful! Booking ID: ${result.book_ID}`);
+                                setSelectedRoom(null); // Close modal after booking
+                            } catch (error) {
+                                alert(`❌ ${error.message}`); // Show error if dates overlap or fail
+                            }
+                        }}
+                    >
                         Book
                     </Button>
+
                 </DialogActions>
             </Dialog>
         </Container>

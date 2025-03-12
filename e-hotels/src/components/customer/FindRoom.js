@@ -209,8 +209,39 @@ export default function FindRoom() {
                         Return
                     </Button>
                     <Box>
-                        <Button color="primary" sx={{ mr: 1 }}>Rent</Button>
-                        <Button color="primary" variant="contained">Book</Button>
+                        <Button
+                            color="primary"
+                            variant="contained"
+                            onClick={async () => {
+                                if (!selectedRoom) return;
+                                try {
+                                    const response = await fetch("/api/book", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({
+                                            cus_ID: "c1", // Replace with logged-in user's ID
+                                            room_ID: selectedRoom.room_ID,
+                                            startDate: "2025-06-01", // Replace with selected dates
+                                            endDate: "2025-06-07"
+                                        }),
+                                    });
+
+                                    const result = await response.json();
+                                    if (response.ok) {
+                                        alert(`Booking successful! Booking ID: ${result.book_ID}`);
+                                        setSelectedRoom(null); // Close modal after booking
+                                    } else {
+                                        alert(`Booking failed: ${result.error}`);
+                                    }
+                                } catch (error) {
+                                    console.error("❌ Booking Error:", error);
+                                    alert("Failed to book the room.");
+                                }
+                            }}
+                        >
+                            Book
+                        </Button>
+
                     </Box>
                 </DialogActions>
             </Dialog>

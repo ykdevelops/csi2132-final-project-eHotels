@@ -3,9 +3,7 @@ import { initializeApp } from "firebase/app";
 import {
     getFirestore,
     collection,
-    getDocs,
-    query,
-    where
+    getDocs
 } from "firebase/firestore";
 
 // ✅ Firebase Configuration
@@ -42,14 +40,15 @@ export async function GET() {
             return NextResponse.json([], { status: 200 });
         }
 
-        // Create a hotel map for quick lookup (hotel_ID -> { hotelName, hotelChain, area })
+        // Create a hotel map for quick lookup (hotel_ID -> { hotelName, hotelChain, area, rating })
         const hotelMap = {};
         hotelsSnapshot.forEach((doc) => {
             const hotelData = doc.data();
             hotelMap[hotelData.hotel_ID] = {
                 hotelName: hotelData.name || "Unknown Hotel",
                 hotelChain: hotelChainsMap[hotelData.hotelC_ID] || "Unknown Chain",
-                area: hotelData.area || "Unknown Area"
+                area: hotelData.area || "Unknown Area",
+                rating: Number(hotelData.rating) || 0 // ✅ Convert to number
             };
         });
 
@@ -67,18 +66,20 @@ export async function GET() {
             const hotelDetails = hotelMap[roomData.hotel_ID] || {
                 hotelName: "Unknown Hotel",
                 hotelChain: "Unknown Chain",
-                area: "Unknown Area"
+                area: "Unknown Area",
+                rating: 0
             };
 
-            console.log(`🛏️ Found room: ${roomData.room_ID} in ${hotelDetails.hotelName}`);
+            console.log(`🛏️ Room: ${roomData.room_ID} | Hotel: ${hotelDetails.hotelName} | Rating: ${hotelDetails.rating}`);
 
             allRooms.push({
-                id: roomDoc.id,       // Firestore doc ID
+                id: roomDoc.id,
                 hotelID: roomData.hotel_ID,
                 hotelName: hotelDetails.hotelName,
                 hotelChain: hotelDetails.hotelChain,
                 area: hotelDetails.area,
-                ...roomData,          // e.g. capacity, price, view, etc.
+                hotelRating: hotelDetails.rating, // ✅ Ensure it’s stored correctly
+                ...roomData,
             });
         });
 

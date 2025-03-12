@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
     Container, Typography, Table, TableBody, TableCell, TableContainer,
-    TableHead, TableRow, Paper, Button, TextField, MenuItem, Select,
+    TableHead, TableRow, Paper, TextField, MenuItem, Select,
     FormControl, InputLabel, Box, Grid, Divider
 } from "@mui/material";
+import StarIcon from "@mui/icons-material/Star"; // ⭐ Import Star Icon
 
 export default function FindRoom({ goBack }) {
     const router = useRouter();
@@ -30,11 +31,17 @@ export default function FindRoom({ goBack }) {
                 const response = await fetch("/api/room/availableRooms");
                 if (!response.ok) throw new Error("Failed to fetch rooms.");
                 const data = await response.json();
-                setRooms(data);
-                setFilteredRooms(data);
+
+                const processedRooms = data.map(room => ({
+                    ...room,
+                    hotelRating: Number(room.hotelRating) || 0 // Ensure rating is a number
+                }));
+
+                setRooms(processedRooms);
+                setFilteredRooms(processedRooms);
 
                 // Extract unique hotel chain names for dropdown
-                const uniqueHotelChains = [...new Set(data.map(room => room.hotelChain))].filter(Boolean);
+                const uniqueHotelChains = [...new Set(processedRooms.map(room => room.hotelChain))].filter(Boolean);
                 setHotelChains(uniqueHotelChains);
             } catch (error) {
                 console.error("❌ Error fetching rooms:", error);
@@ -47,18 +54,15 @@ export default function FindRoom({ goBack }) {
     useEffect(() => {
         let updatedRooms = rooms;
 
-        // ✅ Check date availability
         if (startDate || endDate) {
             updatedRooms = updatedRooms.filter(room => {
                 if (!room.bookedDates || room.bookedDates.length === 0) {
                     return true; // No bookings, so it's available
                 }
 
-                // Convert user input dates to Date objects
                 const userStart = startDate ? new Date(startDate) : null;
                 const userEnd = endDate ? new Date(endDate) : null;
 
-                // Check if the selected dates overlap with booked dates
                 return !room.bookedDates.some(({ startDate, endDate }) => {
                     const bookedStart = new Date(startDate);
                     const bookedEnd = new Date(endDate);
@@ -72,27 +76,15 @@ export default function FindRoom({ goBack }) {
             });
         }
 
-        // ✅ Apply other filters
         if (capacity) updatedRooms = updatedRooms.filter(room => room.capacity === parseInt(capacity));
         if (area) updatedRooms = updatedRooms.filter(room => room.area === area);
         if (hotelChain) updatedRooms = updatedRooms.filter(room => room.hotelChain === hotelChain);
-        if (hotelRating) updatedRooms = updatedRooms.filter(room => room.hotelRating === parseInt(hotelRating));
+        if (hotelRating) updatedRooms = updatedRooms.filter(room => Number(room.hotelRating) === Number(hotelRating));
         if (minPrice) updatedRooms = updatedRooms.filter(room => room.price >= parseInt(minPrice));
         if (maxPrice) updatedRooms = updatedRooms.filter(room => room.price <= parseInt(maxPrice));
 
         setFilteredRooms(updatedRooms);
     }, [startDate, endDate, capacity, area, hotelChain, hotelRating, minPrice, maxPrice, rooms]);
-
-
-    const handleBooking = (roomId) => {
-        console.log(`🔹 Booking room: ${roomId}`);
-        // Add logic to handle booking request
-    };
-
-    const handleRenting = (roomId) => {
-        console.log(`🔹 Renting room: ${roomId}`);
-        // Add logic to handle renting request
-    };
 
     return (
         <Container maxWidth="lg" style={{ marginTop: "40px" }}>
@@ -103,10 +95,8 @@ export default function FindRoom({ goBack }) {
             <Grid container spacing={3}>
                 {/* Filters Column (1/3 width) */}
                 <Grid item xs={12} sm={4}>
-                    <Paper style={{ padding: "20px", height: "100%", position: "sticky", top: "20px" }}>
-                        <Typography variant="h6" gutterBottom>
-                            Filters
-                        </Typography>
+                    <Paper style={{ padding: "20px" }}>
+                        <Typography variant="h6" gutterBottom>Filters</Typography>
                         <Divider style={{ marginBottom: "20px" }} />
 
                         <TextField
@@ -129,41 +119,74 @@ export default function FindRoom({ goBack }) {
                             margin="normal"
                         />
 
+                        {/* Capacity Select */}
                         <FormControl fullWidth margin="normal">
-                            <InputLabel>Capacity</InputLabel>
-                            <Select value={capacity} onChange={(e) => setCapacity(e.target.value)}>
-                                <MenuItem value="">All</MenuItem>
+                            <InputLabel shrink sx={{
+                                transform: "translateY(-20px)",  // Move label up slightly
+
+                            }}>Capacity</InputLabel>
+                            <Select value={capacity} onChange={(e) => setCapacity(e.target.value)} displayEmpty>
+                                <MenuItem value="" sx={{
+                                    textAlign: "left",              // Left-align text
+                                    justifyContent: "flex-start",   // Ensures left alignment
+                                    display: "flex",                // Helps with alignment
+
+                                }}><em>All</em></MenuItem>
                                 {[1, 2, 3, 4, 5].map(num => <MenuItem key={num} value={num}>{num}</MenuItem>)}
                             </Select>
                         </FormControl>
 
+                        {/* Area Select */}
                         <FormControl fullWidth margin="normal">
-                            <InputLabel>Area</InputLabel>
-                            <Select value={area} onChange={(e) => setArea(e.target.value)}>
-                                <MenuItem value="">All</MenuItem>
+                            <InputLabel shrink sx={{
+                                transform: "translateY(-20px)",  // Move label up slightly
+
+                            }}>Area</InputLabel>
+                            <Select value={area} onChange={(e) => setArea(e.target.value)} displayEmpty>
+                                <MenuItem value=""><em>All</em></MenuItem>
                                 {areas.map(area => (
                                     <MenuItem key={area} value={area}>{area}</MenuItem>
                                 ))}
                             </Select>
                         </FormControl>
 
+                        {/* Hotel Chain Select */}
                         <FormControl fullWidth margin="normal">
-                            <InputLabel>Hotel Chain</InputLabel>
-                            <Select value={hotelChain} onChange={(e) => setHotelChain(e.target.value)}>
-                                <MenuItem value="">All</MenuItem>
+                            <InputLabel shrink sx={{
+                                transform: "translateY(-20px)",  // Move label up slightly
+
+                            }}>Hotel Chain</InputLabel>
+                            <Select value={hotelChain} onChange={(e) => setHotelChain(e.target.value)} displayEmpty>
+                                <MenuItem value=""><em>All</em></MenuItem>
                                 {hotelChains.map(chain => (
                                     <MenuItem key={chain} value={chain}>{chain}</MenuItem>
                                 ))}
                             </Select>
                         </FormControl>
 
+                        {/* Hotel Rating Select */}
                         <FormControl fullWidth margin="normal">
-                            <InputLabel>Hotel Rating</InputLabel>
-                            <Select value={hotelRating} onChange={(e) => setHotelRating(e.target.value)}>
-                                <MenuItem value="">All</MenuItem>
-                                {[1, 2, 3, 4, 5].map(num => <MenuItem key={num} value={num}>{num} Stars</MenuItem>)}
+                            <InputLabel
+                                shrink
+                                sx={{
+                                    transform: "translateY(-20px)",  // Move label up slightly
+
+                                }}
+                            >
+                                Hotel Rating
+                            </InputLabel>
+                            <Select
+                                value={hotelRating}
+                                onChange={(e) => setHotelRating(e.target.value)}
+                                displayEmpty
+                            >
+                                <MenuItem value=""><em>All</em></MenuItem>
+                                {[1, 2, 3, 4, 5].map(num => (
+                                    <MenuItem key={num} value={num}>{num} Stars</MenuItem>
+                                ))}
                             </Select>
                         </FormControl>
+
 
                         <TextField
                             label="Min Price"
@@ -186,38 +209,28 @@ export default function FindRoom({ goBack }) {
 
                 {/* Available Rooms Column (2/3 width) */}
                 <Grid item xs={12} sm={8}>
-                    <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
+                    <TableContainer component={Paper}>
                         <Table>
-                            <TableHead sx={{ backgroundColor: "#f4f4f4" }}>
+                            <TableHead>
                                 <TableRow>
-                                    {["Hotel", "Hotel Chain", "Area", "Capacity", "Rating", "Price", "Actions"].map(header => (
-                                        <TableCell key={header} sx={{ fontWeight: "bold" }}>{header}</TableCell>
+                                    {["Hotel", "Hotel Chain", "Area", "Capacity", "Rating", "Price"].map(header => (
+                                        <TableCell key={header}>{header}</TableCell>
                                     ))}
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {filteredRooms.length > 0 ? (
-                                    filteredRooms.map((room) => (
-                                        <TableRow key={room.id} sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}>
-                                            <TableCell>{room.hotelName}</TableCell>
-                                            <TableCell>{room.hotelChain}</TableCell>
-                                            <TableCell>{room.area}</TableCell>
-                                            <TableCell>{room.capacity}</TableCell>
-                                            <TableCell>{room.hotelRating} ⭐</TableCell>
-                                            <TableCell>${room.price}</TableCell>
-                                            <TableCell>
-                                                <Box display="flex" justifyContent="center" gap={2}>
-                                                    <Button variant="contained" color="primary" onClick={() => handleBooking(room.id)}>Book</Button>
-                                                    <Button variant="contained" color="secondary" onClick={() => handleRenting(room.id)}>Rent</Button>
-                                                </Box>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={7} align="center">No available rooms found.</TableCell>
+                                {filteredRooms.map((room) => (
+                                    <TableRow key={room.id}>
+                                        <TableCell>{room.hotelName}</TableCell>
+                                        <TableCell>{room.hotelChain}</TableCell>
+                                        <TableCell>{room.area}</TableCell>
+                                        <TableCell>{room.capacity}</TableCell>
+                                        <TableCell>
+                                            {[...Array(room.hotelRating)].map((_, i) => <StarIcon key={i} color="warning" />)}
+                                        </TableCell>
+                                        <TableCell>${room.price}</TableCell>
                                     </TableRow>
-                                )}
+                                ))}
                             </TableBody>
                         </Table>
                     </TableContainer>

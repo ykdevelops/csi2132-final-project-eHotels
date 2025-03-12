@@ -1,21 +1,22 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
     Container, Typography, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, TextField, MenuItem, Select,
-    FormControl, InputLabel, Box, Grid, Divider
+    FormControl, InputLabel, Box, Grid, Divider, CircularProgress,
+    Dialog, DialogActions, DialogContent, DialogTitle, Button, IconButton
 } from "@mui/material";
-import StarIcon from "@mui/icons-material/Star"; // ⭐ Import Star Icon
+import StarIcon from "@mui/icons-material/Star";
+import CloseIcon from "@mui/icons-material/Close";
 
-export default function FindRoom({ goBack }) {
-    const router = useRouter();
+export default function FindRoom() {
     const [rooms, setRooms] = useState([]);
     const [filteredRooms, setFilteredRooms] = useState([]);
-    const [areas, setAreas] = useState(["Downtown", "Suburban", "Countryside"]);
     const [hotelChains, setHotelChains] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedRoom, setSelectedRoom] = useState(null);
 
-    // Filters
+    // ✅ All Filters Included
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [capacity, setCapacity] = useState("");
@@ -28,23 +29,25 @@ export default function FindRoom({ goBack }) {
     useEffect(() => {
         const fetchRooms = async () => {
             try {
+                setLoading(true);
                 const response = await fetch("/api/room/availableRooms");
                 if (!response.ok) throw new Error("Failed to fetch rooms.");
                 const data = await response.json();
 
                 const processedRooms = data.map(room => ({
                     ...room,
-                    hotelRating: Number(room.hotelRating) || 0 // Ensure rating is a number
+                    hotelRating: Number(room.hotelRating) || 0
                 }));
 
                 setRooms(processedRooms);
                 setFilteredRooms(processedRooms);
 
-                // Extract unique hotel chain names for dropdown
                 const uniqueHotelChains = [...new Set(processedRooms.map(room => room.hotelChain))].filter(Boolean);
                 setHotelChains(uniqueHotelChains);
             } catch (error) {
                 console.error("❌ Error fetching rooms:", error);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -53,28 +56,6 @@ export default function FindRoom({ goBack }) {
 
     useEffect(() => {
         let updatedRooms = rooms;
-
-        if (startDate || endDate) {
-            updatedRooms = updatedRooms.filter(room => {
-                if (!room.bookedDates || room.bookedDates.length === 0) {
-                    return true; // No bookings, so it's available
-                }
-
-                const userStart = startDate ? new Date(startDate) : null;
-                const userEnd = endDate ? new Date(endDate) : null;
-
-                return !room.bookedDates.some(({ startDate, endDate }) => {
-                    const bookedStart = new Date(startDate);
-                    const bookedEnd = new Date(endDate);
-
-                    return (
-                        (userStart && userStart <= bookedEnd && userStart >= bookedStart) ||
-                        (userEnd && userEnd >= bookedStart && userEnd <= bookedEnd) ||
-                        (userStart && userEnd && userStart <= bookedStart && userEnd >= bookedEnd)
-                    );
-                });
-            });
-        }
 
         if (capacity) updatedRooms = updatedRooms.filter(room => room.capacity === parseInt(capacity));
         if (area) updatedRooms = updatedRooms.filter(room => room.area === area);
@@ -93,69 +74,35 @@ export default function FindRoom({ goBack }) {
             </Typography>
 
             <Grid container spacing={3}>
-                {/* Filters Column (1/3 width) */}
+                {/* Filters Column */}
                 <Grid item xs={12} sm={4}>
                     <Paper style={{ padding: "20px" }}>
                         <Typography variant="h6" gutterBottom>Filters</Typography>
                         <Divider style={{ marginBottom: "20px" }} />
 
-                        <TextField
-                            label="Start Date"
-                            type="date"
-                            InputLabelProps={{ shrink: true }}
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            fullWidth
-                            margin="normal"
-                        />
+                        <TextField label="Start Date" type="date" InputLabelProps={{ shrink: true }} value={startDate} onChange={(e) => setStartDate(e.target.value)} fullWidth margin="normal" />
+                        <TextField label="End Date" type="date" InputLabelProps={{ shrink: true }} value={endDate} onChange={(e) => setEndDate(e.target.value)} fullWidth margin="normal" />
 
-                        <TextField
-                            label="End Date"
-                            type="date"
-                            InputLabelProps={{ shrink: true }}
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            fullWidth
-                            margin="normal"
-                        />
-
-                        {/* Capacity Select */}
                         <FormControl fullWidth margin="normal">
-                            <InputLabel shrink sx={{
-                                transform: "translateY(-20px)",  // Move label up slightly
-
-                            }}>Capacity</InputLabel>
+                            <InputLabel>Capacity</InputLabel>
                             <Select value={capacity} onChange={(e) => setCapacity(e.target.value)} displayEmpty>
-                                <MenuItem value="" sx={{
-                                    textAlign: "left",              // Left-align text
-                                    justifyContent: "flex-start",   // Ensures left alignment
-                                    display: "flex",                // Helps with alignment
-
-                                }}><em>All</em></MenuItem>
+                                <MenuItem value=""><em>All</em></MenuItem>
                                 {[1, 2, 3, 4, 5].map(num => <MenuItem key={num} value={num}>{num}</MenuItem>)}
                             </Select>
                         </FormControl>
 
-                        {/* Area Select */}
                         <FormControl fullWidth margin="normal">
-                            <InputLabel shrink sx={{
-                                transform: "translateY(-20px)",  // Move label up slightly
-
-                            }}>Area</InputLabel>
+                            <InputLabel>Area</InputLabel>
                             <Select value={area} onChange={(e) => setArea(e.target.value)} displayEmpty>
                                 <MenuItem value=""><em>All</em></MenuItem>
-                                {areas.map(area => (
+                                {["Downtown", "Suburban", "Countryside"].map(area => (
                                     <MenuItem key={area} value={area}>{area}</MenuItem>
                                 ))}
                             </Select>
                         </FormControl>
 
-                        {/* Hotel Chain Select */}
                         <FormControl fullWidth margin="normal">
-                            <InputLabel shrink sx={{
-                                transform: "translateY(-20px)",  // Move label up slightly
-
-                            }}>Hotel Chain</InputLabel>
+                            <InputLabel>Hotel Chain</InputLabel>
                             <Select value={hotelChain} onChange={(e) => setHotelChain(e.target.value)} displayEmpty>
                                 <MenuItem value=""><em>All</em></MenuItem>
                                 {hotelChains.map(chain => (
@@ -164,22 +111,9 @@ export default function FindRoom({ goBack }) {
                             </Select>
                         </FormControl>
 
-                        {/* Hotel Rating Select */}
                         <FormControl fullWidth margin="normal">
-                            <InputLabel
-                                shrink
-                                sx={{
-                                    transform: "translateY(-20px)",  // Move label up slightly
-
-                                }}
-                            >
-                                Hotel Rating
-                            </InputLabel>
-                            <Select
-                                value={hotelRating}
-                                onChange={(e) => setHotelRating(e.target.value)}
-                                displayEmpty
-                            >
+                            <InputLabel>Hotel Rating</InputLabel>
+                            <Select value={hotelRating} onChange={(e) => setHotelRating(e.target.value)} displayEmpty>
                                 <MenuItem value=""><em>All</em></MenuItem>
                                 {[1, 2, 3, 4, 5].map(num => (
                                     <MenuItem key={num} value={num}>{num} Stars</MenuItem>
@@ -187,55 +121,102 @@ export default function FindRoom({ goBack }) {
                             </Select>
                         </FormControl>
 
-
-                        <TextField
-                            label="Min Price"
-                            type="number"
-                            value={minPrice}
-                            onChange={(e) => setMinPrice(e.target.value)}
-                            fullWidth
-                            margin="normal"
-                        />
-                        <TextField
-                            label="Max Price"
-                            type="number"
-                            value={maxPrice}
-                            onChange={(e) => setMaxPrice(e.target.value)}
-                            fullWidth
-                            margin="normal"
-                        />
+                        <TextField label="Min Price" type="number" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} fullWidth margin="normal" />
+                        <TextField label="Max Price" type="number" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} fullWidth margin="normal" />
                     </Paper>
                 </Grid>
 
-                {/* Available Rooms Column (2/3 width) */}
+                {/* Available Rooms Column */}
                 <Grid item xs={12} sm={8}>
                     <TableContainer component={Paper}>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    {["Hotel", "Hotel Chain", "Area", "Capacity", "Rating", "Price"].map(header => (
-                                        <TableCell key={header}>{header}</TableCell>
-                                    ))}
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {filteredRooms.map((room) => (
-                                    <TableRow key={room.id}>
-                                        <TableCell>{room.hotelName}</TableCell>
-                                        <TableCell>{room.hotelChain}</TableCell>
-                                        <TableCell>{room.area}</TableCell>
-                                        <TableCell>{room.capacity}</TableCell>
-                                        <TableCell>
-                                            {[...Array(room.hotelRating)].map((_, i) => <StarIcon key={i} color="warning" />)}
-                                        </TableCell>
-                                        <TableCell>${room.price}</TableCell>
+                        {loading ? (
+                            <Box sx={{ display: "flex", justifyContent: "center", padding: 2 }}>
+                                <CircularProgress />
+                            </Box>
+                        ) : (
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        {["Hotel", "Hotel Chain", "Area", "Capacity", "Rating", "Price"].map(header => (
+                                            <TableCell key={header}>{header}</TableCell>
+                                        ))}
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHead>
+                                <TableBody>
+                                    {filteredRooms.map((room) => (
+                                        <TableRow key={room.id} hover onClick={() => setSelectedRoom(room)} sx={{ cursor: "pointer" }}>
+                                            <TableCell>{room.hotelName}</TableCell>
+                                            <TableCell>{room.hotelChain}</TableCell>
+                                            <TableCell>{room.area}</TableCell>
+                                            <TableCell>{room.capacity}</TableCell>
+                                            <TableCell>{[...Array(room.hotelRating)].map((_, i) => <StarIcon key={i} color="warning" />)}</TableCell>
+                                            <TableCell>${room.price}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        )}
                     </TableContainer>
                 </Grid>
             </Grid>
+
+            {/* Room Details Modal */}
+            <Dialog open={!!selectedRoom} onClose={() => setSelectedRoom(null)} fullWidth maxWidth="md">
+                <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    {/* Fix: Change component="span" to avoid nesting conflict */}
+                    <Typography variant="h6" component="span" fontWeight="bold">
+                        Room Details
+                    </Typography>
+                    <IconButton onClick={() => setSelectedRoom(null)}>
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+
+                <DialogContent>
+                    {/* Placeholder Image */}
+                    <Box sx={{ width: "100%", height: 250, backgroundColor: "#ccc", borderRadius: 2, mb: 3 }} />
+
+                    {/* Room Information */}
+                    <Typography variant="h5" fontWeight="bold" gutterBottom>{selectedRoom?.hotelName}</Typography>
+                    <Typography variant="subtitle1" color="textSecondary">{selectedRoom?.hotelChain}</Typography>
+
+                    <Grid container spacing={2} sx={{ mt: 2 }}>
+                        <Grid item xs={6}>
+                            <Typography><strong>Location:</strong> {selectedRoom?.area}</Typography>
+                            <Typography><strong>Capacity:</strong> {selectedRoom?.capacity} People</Typography>
+                            <Typography><strong>Room Type:</strong> {selectedRoom?.type || "N/A"}</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Typography><strong>Price:</strong> ${selectedRoom?.price} per night</Typography>
+                            <Typography><strong>Rating:</strong> {selectedRoom?.hotelRating} Stars</Typography>
+                            <Typography><strong>View:</strong> {selectedRoom?.view || "N/A"}</Typography>
+                        </Grid>
+                    </Grid>
+
+                    {/* Room Features */}
+                    <Box sx={{ mt: 2 }}>
+                        <Typography variant="h6" fontWeight="bold" gutterBottom>Room Features:</Typography>
+                        <Typography>- {selectedRoom?.bedType || "N/A"} Bed</Typography>
+                        <Typography>- {selectedRoom?.wifi ? "Free Wi-Fi" : "No Wi-Fi"}</Typography>
+                        <Typography>- {selectedRoom?.ac ? "Air Conditioning" : "No A/C"}</Typography>
+                        <Typography>- {selectedRoom?.tv ? "Television Included" : "No TV"}</Typography>
+                    </Box>
+                </DialogContent>
+
+                {/* Action Buttons */}
+                <DialogActions sx={{ justifyContent: "space-between", padding: "20px" }}>
+                    <Button color="secondary" onClick={() => setSelectedRoom(null)} variant="outlined">
+                        Return
+                    </Button>
+                    <Box>
+                        <Button color="primary" sx={{ mr: 1 }}>Rent</Button>
+                        <Button color="primary" variant="contained">Book</Button>
+                    </Box>
+                </DialogActions>
+            </Dialog>
+
+
+
         </Container>
     );
 }

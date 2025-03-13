@@ -6,6 +6,7 @@ import EditRooms from "../../components/employee/EditRooms/EditRooms";
 import EditHotels from "../../components/employee/EditHotels/EditHotels";
 import EditEmployees from "../../components/employee/EditEmployees/EditEmployees";
 import EditCustomers from "../../components/employee/EditCustomers/EditCustomers";
+import CheckIn from "../../components/employee/CheckIn/CheckIn";
 
 export default function EmployeeDashboard() {
     const [activeTab, setActiveTab] = useState(null);
@@ -20,23 +21,31 @@ export default function EmployeeDashboard() {
                 return <EditEmployees />;
             case "customers":
                 return <EditCustomers />;
+            case "checkin":
+                return <CheckIn />;
             default:
                 return null;
         }
     };
 
     return (
-        <Container maxWidth="lg" style={{ textAlign: "center", marginTop: "40px" }}>
+        <Container maxWidth="sm" style={{ textAlign: "center", marginTop: "40px" }}>
             {!activeTab ? (
                 <>
                     <Typography variant="h4" gutterBottom>Employee Dashboard</Typography>
-                    <Grid container spacing={3} justifyContent="center" style={{ marginTop: "20px" }}>
-                        {["rooms", "hotels", "employees", "customers"].map((tab) => (
-                            <Grid item xs={12} sm={6} md={4} key={tab}>
-                                <Card style={{ cursor: "pointer" }} onClick={() => setActiveTab(tab)}>
+                    <Grid container spacing={2} direction="column" alignItems="center" style={{ marginTop: "20px" }}>
+                        {[
+                            { key: "rooms", label: "Edit Rooms" },
+                            { key: "hotels", label: "Edit Hotels" },
+                            { key: "employees", label: "Edit Employees" },
+                            { key: "customers", label: "Edit Customers" },
+                            { key: "checkin", label: "Check In" }
+                        ].map((tab) => (
+                            <Grid item xs={12} key={tab.key}>
+                                <Card style={{ cursor: "pointer", width: "100%" }} onClick={() => setActiveTab(tab.key)}>
                                     <CardActionArea>
                                         <CardContent>
-                                            <Typography variant="h6">Edit {tab.charAt(0).toUpperCase() + tab.slice(1)}</Typography>
+                                            <Typography variant="h6">{tab.label}</Typography>
                                         </CardContent>
                                     </CardActionArea>
                                 </Card>

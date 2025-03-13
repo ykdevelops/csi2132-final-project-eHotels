@@ -96,8 +96,8 @@ const customers = [
 
 // ✅ Bookings
 const book = [
-    { book_ID: "bk1", cus_ID: "c1", room_ID: "r1_1", ba_ID: "b1", checkInDate: "2025-03-01", checkOutDate: "2025-03-05" },
-    { book_ID: "bk2", cus_ID: "c2", room_ID: "r2_2", ba_ID: "b2", checkInDate: "2025-04-10", checkOutDate: "2025-04-15" },
+    { book_ID: "bk1", cus_ID: "c1", room_ID: "r1_1", ba_ID: "b1", checkInDate: "2025-03-01", checkOutDate: "2025-03-05", checkedIn: false },
+    { book_ID: "bk2", cus_ID: "c2", room_ID: "r2_2", ba_ID: "b2", checkInDate: "2025-04-10", checkOutDate: "2025-04-15", checkedIn: false }
 ];
 
 // ✅ Rent Relationship

@@ -3,14 +3,16 @@
 import { useState, useEffect } from "react";
 import {
     Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Paper, CircularProgress, Box
+    Paper, CircularProgress, Box, Button
 } from "@mui/material";
-import RoomModal from "./RoomModal"; // Import the new modal component
+import RoomModal from "./RoomModal"; // Import the modal for editing rooms
+import NewRoomModal from "./NewRoomModal"; // Import the modal for adding new rooms
 
 export default function EditRooms() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [openModal, setOpenModal] = useState(false);
+    const [openNewRoomModal, setOpenNewRoomModal] = useState(false);
     const [selectedRoom, setSelectedRoom] = useState(null);
 
     // ✅ Fetch Rooms from API
@@ -23,6 +25,9 @@ export default function EditRooms() {
         try {
             const response = await fetch("/api/employee/allRooms");
             const result = await response.json();
+
+            console.log("📥 API Response:", result); // ✅ Log structure for debugging
+
             if (response.ok) {
                 setData(result.data || []);
             } else {
@@ -34,25 +39,38 @@ export default function EditRooms() {
         setLoading(false);
     };
 
-    // ✅ Open Modal when a row is clicked
+    // ✅ Open Edit Room Modal
     const handleOpenModal = (room) => {
         setSelectedRoom(room);
         setOpenModal(true);
     };
 
-    // ✅ Close Modal
+    // ✅ Close Edit Room Modal
     const handleCloseModal = () => {
         setOpenModal(false);
         setSelectedRoom(null);
     };
 
+    // ✅ Open New Room Modal
+    const handleOpenNewRoomModal = () => {
+        setOpenNewRoomModal(true);
+    };
+
+    // ✅ Close New Room Modal
+    const handleCloseNewRoomModal = () => {
+        setOpenNewRoomModal(false);
+    };
+
     // ✅ Format Data for Table Display
     const formatValue = (val, key) => {
-        if (key === "view" || key === "extendible") {
-            return val ? "Yes" : "No";
+        if (key === "view" || key === "extendible" || key === "isAvailable") {
+            return val === "Yes" || val === true ? "Yes" : "No";
         }
-        if (key === "bookedDates" && Array.isArray(val)) {
-            return val.length > 0 ? `${val[0].startDate} to ${val[0].endDate}` : "None";
+        if (key === "amenities" && Array.isArray(val)) {
+            return val.length > 0 ? val.join(", ") : "None"; // Convert array to a readable string
+        }
+        if (key === "bookedDates" && Array.isArray(val) && val.length > 0) {
+            return `${val[0].startDate} to ${val[0].endDate}`; // Show only first booking
         }
         return val || "—";
     };
@@ -63,6 +81,17 @@ export default function EditRooms() {
                 Edit Rooms
             </Typography>
 
+            {/* ✅ Add New Room Button */}
+            <Box textAlign="right" mb={2}>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleOpenNewRoomModal}
+                >
+                    + Add New Room
+                </Button>
+            </Box>
+
             <TableContainer component={Paper} style={{ marginTop: "20px" }}>
                 {loading ? (
                     <Box sx={{ display: "flex", justifyContent: "center", padding: 3 }}>
@@ -72,24 +101,20 @@ export default function EditRooms() {
                     <Table>
                         <TableHead>
                             <TableRow>
-                                {data.length > 0 &&
-                                    Object.keys(data[0])
-                                        .slice(0, 6) // ✅ Only Show 6 Columns
-                                        .map((key) => (
-                                            <TableCell key={key}>{key.toUpperCase()}</TableCell>
-                                        ))
-                                }
+                                {/* ✅ Select 6 Key Attributes for Table Display */}
+                                {["room_ID", "hotel_ID", "capacity", "price", "view", "bookedDates"].map((key) => (
+                                    <TableCell key={key}>{key.toUpperCase()}</TableCell>
+                                ))}
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {data.length > 0 ? (
                                 data.map((item) => (
                                     <TableRow key={item.id} hover onClick={() => handleOpenModal(item)} style={{ cursor: "pointer" }}>
-                                        {Object.keys(item)
-                                            .slice(0, 6) // ✅ Only Show 6 Columns
-                                            .map((key) => (
-                                                <TableCell key={key}>{formatValue(item[key], key)}</TableCell>
-                                            ))}
+                                        {/* ✅ Show only selected columns */}
+                                        {["room_ID", "hotel_ID", "capacity", "price", "view", "bookedDates"].map((key) => (
+                                            <TableCell key={key}>{formatValue(item[key], key)}</TableCell>
+                                        ))}
                                     </TableRow>
                                 ))
                             ) : (
@@ -104,11 +129,18 @@ export default function EditRooms() {
                 )}
             </TableContainer>
 
-            {/* Room Details Modal Component */}
+            {/* Room Details Modal Component (Edit) */}
             <RoomModal
                 open={openModal}
-                room={selectedRoom}
+                room={selectedRoom} // Null for new room
                 onClose={handleCloseModal}
+                refreshData={fetchRoomData}
+            />
+
+            {/* New Room Modal Component (Add) */}
+            <NewRoomModal
+                open={openNewRoomModal}
+                onClose={handleCloseNewRoomModal}
                 refreshData={fetchRoomData}
             />
         </Container>

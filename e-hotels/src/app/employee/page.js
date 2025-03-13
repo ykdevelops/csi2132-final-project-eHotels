@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { Container, Typography, Grid, Card, CardActionArea, CardContent, Button } from "@mui/material";
-import EditRooms from "../../components/employee/EditRooms";
-import EditHotels from "../../components/employee/EditHotels";
+import EditRooms from "../../components/employee/EditRooms/EditRooms";
+import EditHotels from "../../components/employee/EditHotels/EditHotels";
 import EditEmployees from "../../components/employee/EditEmployees";
-import EditCustomers from "../../components/employee/EditCustomers";
+import EditCustomers from "../../components/employee/EditCustomers/EditCustomers";
 
 export default function EmployeeDashboard() {
     const [activeTab, setActiveTab] = useState(null);

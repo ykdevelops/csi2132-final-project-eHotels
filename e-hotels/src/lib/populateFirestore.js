@@ -74,10 +74,12 @@ const hotelChains = [
     },
 ];
 
-// ========== Hotels (6 total) ==========
-// (You can expand further if you like, but here we have at least 5+ total)
+// ========== Hotels (Now 25 total) ==========
+// Original 6 remain unchanged; new ones have been ADDED below
 const hotels = [
-    // For chain hc1
+    // -----------------------------
+    // Existing (hc1) -> 2 hotels
+    // -----------------------------
     {
         hotel_ID: "h1",
         hotelC_ID: "hc1",
@@ -101,7 +103,9 @@ const hotels = [
         area: "Suburban",
     },
 
-    // For chain hc2
+    // -----------------------------
+    // Existing (hc2) -> 2 hotels
+    // -----------------------------
     {
         hotel_ID: "h3",
         hotelC_ID: "hc2",
@@ -125,7 +129,9 @@ const hotels = [
         area: "Suburban",
     },
 
-    // For chain hc3
+    // -----------------------------
+    // Existing (hc3) -> 2 hotels
+    // -----------------------------
     {
         hotel_ID: "h5",
         hotelC_ID: "hc3",
@@ -148,10 +154,233 @@ const hotels = [
         phoneNumber: "+1 416-555-0206",
         area: "Suburban",
     },
+
+    // ==============================
+    // ADDITIONAL HOTELS
+    // ==============================
+
+    // ~~~ For hc1 (need 3 more to reach 5 total) ~~~
+    {
+        hotel_ID: "h7",
+        hotelC_ID: "hc1",
+        name: "Peakside Suites",
+        address: "200 Alpine Path",
+        email: "peakside@example.com",
+        rating: 4,
+        numOfRooms: 5,
+        phoneNumber: "+1 303-555-0207",
+        area: "Countryside",
+    },
+    {
+        hotel_ID: "h8",
+        hotelC_ID: "hc1",
+        name: "Mountain Edge Resort",
+        address: "305 Summit Drive",
+        email: "mountainedge@example.com",
+        rating: 5,
+        numOfRooms: 5,
+        phoneNumber: "+1 303-555-0208",
+        area: "Downtown",
+    },
+    {
+        hotel_ID: "h9",
+        hotelC_ID: "hc1",
+        name: "Alpine Heights Hotel",
+        address: "910 Skyline Blvd",
+        email: "alpineheights@example.com",
+        rating: 3,
+        numOfRooms: 5,
+        phoneNumber: "+1 303-555-0209",
+        area: "Suburban",
+    },
+
+    // ~~~ For hc2 (need 3 more to reach 5 total) ~~~
+    {
+        hotel_ID: "h10",
+        hotelC_ID: "hc2",
+        name: "Forestview Inn",
+        address: "441 Maple Grove",
+        email: "forestview@example.com",
+        rating: 4,
+        numOfRooms: 5,
+        phoneNumber: "+1 587-555-0210",
+        area: "Countryside",
+    },
+    {
+        hotel_ID: "h11",
+        hotelC_ID: "hc2",
+        name: "Pinecone Retreat",
+        address: "120 Pinecone Lane",
+        email: "pinecone@example.com",
+        rating: 5,
+        numOfRooms: 5,
+        phoneNumber: "+1 587-555-0211",
+        area: "Downtown",
+    },
+    {
+        hotel_ID: "h12",
+        hotelC_ID: "hc2",
+        name: "Woodland Oasis",
+        address: "680 Cedar Rd",
+        email: "woodland@example.com",
+        rating: 4,
+        numOfRooms: 5,
+        phoneNumber: "+1 587-555-0212",
+        area: "Suburban",
+    },
+
+    // ~~~ For hc3 (need 3 more to reach 5 total) ~~~
+    {
+        hotel_ID: "h13",
+        hotelC_ID: "hc3",
+        name: "Metropolitan Hub",
+        address: "22 Skyline Ave",
+        email: "metrohub@example.com",
+        rating: 4,
+        numOfRooms: 5,
+        phoneNumber: "+1 416-555-0213",
+        area: "Downtown",
+    },
+    {
+        hotel_ID: "h14",
+        hotelC_ID: "hc3",
+        name: "Urban Heights Inn",
+        address: "77 Midtown Rd",
+        email: "urbanheights@example.com",
+        rating: 5,
+        numOfRooms: 5,
+        phoneNumber: "+1 416-555-0214",
+        area: "Suburban",
+    },
+    {
+        hotel_ID: "h15",
+        hotelC_ID: "hc3",
+        name: "City Lights Hotel",
+        address: "33 Bright Blvd",
+        email: "citylights@example.com",
+        rating: 3,
+        numOfRooms: 5,
+        phoneNumber: "+1 416-555-0215",
+        area: "Downtown",
+    },
+
+    // ~~~ For hc4 (need 5 total) ~~~
+    {
+        hotel_ID: "h16",
+        hotelC_ID: "hc4",
+        name: "Coastal Breeze Resort",
+        address: "101 Seashore Dr",
+        email: "coastalbreeze@example.com",
+        rating: 5,
+        numOfRooms: 5,
+        phoneNumber: "+1 305-555-0216",
+        area: "Downtown",
+    },
+    {
+        hotel_ID: "h17",
+        hotelC_ID: "hc4",
+        name: "Oceanview Villas",
+        address: "202 Marine Ave",
+        email: "oceanviewvillas@example.com",
+        rating: 4,
+        numOfRooms: 5,
+        phoneNumber: "+1 305-555-0217",
+        area: "Suburban",
+    },
+    {
+        hotel_ID: "h18",
+        hotelC_ID: "hc4",
+        name: "Island Paradise Inn",
+        address: "300 Palm Tree Rd",
+        email: "islandparadise@example.com",
+        rating: 5,
+        numOfRooms: 5,
+        phoneNumber: "+1 305-555-0218",
+        area: "Countryside",
+    },
+    {
+        hotel_ID: "h19",
+        hotelC_ID: "hc4",
+        name: "Tidal Wave Suites",
+        address: "400 Coral Blvd",
+        email: "tidalwave@example.com",
+        rating: 3,
+        numOfRooms: 5,
+        phoneNumber: "+1 305-555-0219",
+        area: "Downtown",
+    },
+    {
+        hotel_ID: "h20",
+        hotelC_ID: "hc4",
+        name: "Seashore Deluxe",
+        address: "505 Anchor Ln",
+        email: "seashoredeluxe@example.com",
+        rating: 4,
+        numOfRooms: 5,
+        phoneNumber: "+1 305-555-0220",
+        area: "Suburban",
+    },
+
+    // ~~~ For hc5 (need 5 total) ~~~
+    {
+        hotel_ID: "h21",
+        hotelC_ID: "hc5",
+        name: "Mountaintop Resort",
+        address: "700 Summit Ave",
+        email: "mountaintop@example.com",
+        rating: 5,
+        numOfRooms: 5,
+        phoneNumber: "+1 604-555-0221",
+        area: "Countryside",
+    },
+    {
+        hotel_ID: "h22",
+        hotelC_ID: "hc5",
+        name: "High Peak Lodges",
+        address: "801 Ridge Rd",
+        email: "highpeak@example.com",
+        rating: 4,
+        numOfRooms: 5,
+        phoneNumber: "+1 604-555-0222",
+        area: "Suburban",
+    },
+    {
+        hotel_ID: "h23",
+        hotelC_ID: "hc5",
+        name: "Snowcap Suites",
+        address: "900 Glacier Dr",
+        email: "snowcap@example.com",
+        rating: 3,
+        numOfRooms: 5,
+        phoneNumber: "+1 604-555-0223",
+        area: "Downtown",
+    },
+    {
+        hotel_ID: "h24",
+        hotelC_ID: "hc5",
+        name: "Alpine Getaway Inn",
+        address: "1022 Crestview Pl",
+        email: "alpinegetaway@example.com",
+        rating: 4,
+        numOfRooms: 5,
+        phoneNumber: "+1 604-555-0224",
+        area: "Suburban",
+    },
+    {
+        hotel_ID: "h25",
+        hotelC_ID: "hc5",
+        name: "Glacier Bay Hotel",
+        address: "1150 Northern Pass",
+        email: "glacierbay@example.com",
+        rating: 5,
+        numOfRooms: 5,
+        phoneNumber: "+1 604-555-0225",
+        area: "Countryside",
+    },
 ];
 
 // ========== Rooms ==========
-// Dynamically create 5 rooms per hotel => 6 hotels => 30 rooms
+// Dynamically create 5 rooms per hotel => 25 hotels => 125 rooms
 const amenitiesList = [
     ["WiFi", "TV", "Balcony"],
     ["WiFi", "TV"],
@@ -164,7 +393,7 @@ const rooms = [];
 hotels.forEach((hotel, index) => {
     for (let i = 1; i <= 5; i++) {
         rooms.push({
-            room_ID: `r${index + 1}_${i}`,
+            room_ID: `r${index + 1}_${i}`,  // e.g. r1_1 ... r25_5
             hotel_ID: hotel.hotel_ID,
             capacity: Math.floor(Math.random() * 4) + 1, // 1-4
             price: 80 + Math.floor(Math.random() * 121) + i * 10, // 80-200 range
@@ -467,7 +696,6 @@ const bookArchive = [
 ];
 
 // ========== Employee (5) ==========
-// We’ll hash the password for each employee
 const employees = [
     {
         emp_ID: "e1",
@@ -517,7 +745,6 @@ const employees = [
 ];
 
 // ========== Manager (5) ==========
-// (Can also hash password if your model requires it)
 const managers = [
     {
         man_ID: "m1",

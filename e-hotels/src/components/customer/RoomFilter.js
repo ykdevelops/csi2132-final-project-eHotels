@@ -1,9 +1,22 @@
 "use client";
 import { Paper, Typography, Divider, TextField, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 
+// 1) You can define ALL_CHAINS as a static array
+const ALL_CHAINS = [
+    "Summit Grand Group",
+    "Evergreen Hospitality",
+    "Urban Lux Stays",
+    "Coastal Retreats",
+    "Mountain Escapes",
+];
+
 export default function RoomFilter({ filters, setFilters, dateError }) {
     // Extracting filter values from parent state
-    const { startDate, endDate, capacity, area, hotelChain, hotelRating, minPrice, maxPrice, hotelChains } = filters;
+    const {
+        startDate, endDate, capacity,
+        area, hotelChain, hotelRating,
+        minPrice, maxPrice,
+    } = filters;
 
     // Function to update filter values
     const handleChange = (field, value) => {
@@ -24,7 +37,7 @@ export default function RoomFilter({ filters, setFilters, dateError }) {
                 onChange={(e) => handleChange("startDate", e.target.value)}
                 fullWidth
                 margin="normal"
-                error={dateError && !startDate} // Turn red if empty
+                error={dateError && !startDate}
                 helperText={dateError && !startDate ? "Start date is required" : ""}
             />
             <TextField
@@ -35,26 +48,36 @@ export default function RoomFilter({ filters, setFilters, dateError }) {
                 onChange={(e) => handleChange("endDate", e.target.value)}
                 fullWidth
                 margin="normal"
-                error={dateError && !endDate} // Turn red if empty
+                error={dateError && !endDate}
                 helperText={dateError && !endDate ? "End date is required" : ""}
             />
 
             {/* ✅ Capacity Filter */}
             <FormControl fullWidth margin="normal">
                 <InputLabel>Capacity</InputLabel>
-                <Select value={capacity} onChange={(e) => handleChange("capacity", e.target.value)} displayEmpty>
+                <Select
+                    value={capacity}
+                    onChange={(e) => handleChange("capacity", e.target.value)}
+                    displayEmpty
+                >
                     <MenuItem value=""><em>All</em></MenuItem>
-                    {[1, 2, 3, 4, 5].map(num => <MenuItem key={num} value={num}>{num}</MenuItem>)}
+                    {[1, 2, 3, 4, 5].map(num => (
+                        <MenuItem key={num} value={num}>{num}</MenuItem>
+                    ))}
                 </Select>
             </FormControl>
 
             {/* ✅ Area Filter */}
             <FormControl fullWidth margin="normal">
                 <InputLabel>Area</InputLabel>
-                <Select value={area} onChange={(e) => handleChange("area", e.target.value)} displayEmpty>
+                <Select
+                    value={area}
+                    onChange={(e) => handleChange("area", e.target.value)}
+                    displayEmpty
+                >
                     <MenuItem value=""><em>All</em></MenuItem>
-                    {["Downtown", "Suburban", "Countryside"].map(area => (
-                        <MenuItem key={area} value={area}>{area}</MenuItem>
+                    {["Downtown", "Suburban", "Countryside"].map(a => (
+                        <MenuItem key={a} value={a}>{a}</MenuItem>
                     ))}
                 </Select>
             </FormControl>
@@ -62,9 +85,15 @@ export default function RoomFilter({ filters, setFilters, dateError }) {
             {/* ✅ Hotel Chain Filter */}
             <FormControl fullWidth margin="normal">
                 <InputLabel>Hotel Chain</InputLabel>
-                <Select value={hotelChain} onChange={(e) => handleChange("hotelChain", e.target.value)} displayEmpty>
-                    <MenuItem value=""><em>All</em></MenuItem>
-                    {hotelChains.map(chain => (
+                <Select
+                    value={hotelChain}
+                    onChange={(e) => handleChange("hotelChain", e.target.value)}
+                    displayEmpty
+                >
+                    <MenuItem value="">
+                        <em>All</em>
+                    </MenuItem>
+                    {ALL_CHAINS.map(chain => (
                         <MenuItem key={chain} value={chain}>{chain}</MenuItem>
                     ))}
                 </Select>
@@ -73,7 +102,11 @@ export default function RoomFilter({ filters, setFilters, dateError }) {
             {/* ✅ Hotel Rating Filter */}
             <FormControl fullWidth margin="normal">
                 <InputLabel>Hotel Rating</InputLabel>
-                <Select value={hotelRating} onChange={(e) => handleChange("hotelRating", e.target.value)} displayEmpty>
+                <Select
+                    value={hotelRating}
+                    onChange={(e) => handleChange("hotelRating", e.target.value)}
+                    displayEmpty
+                >
                     <MenuItem value=""><em>All</em></MenuItem>
                     {[1, 2, 3, 4, 5].map(num => (
                         <MenuItem key={num} value={num}>{num} Stars</MenuItem>

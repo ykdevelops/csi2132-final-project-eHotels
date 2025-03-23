@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
-    Button, TextField
+    Button, TextField, IconButton, InputAdornment
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 export default function CustomerModal({ open, customer, onClose, refreshData }) {
     const [customerData, setCustomerData] = useState({
@@ -12,11 +13,12 @@ export default function CustomerModal({ open, customer, onClose, refreshData }) 
         email: "",
         name: "",
         address: "",
-        dateOfReg: "",
-        password: "",
+        dateOfReg: ""
     });
 
-    // ✅ Update form when modal opens with new customer
+    const [newPassword, setNewPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+
     useEffect(() => {
         if (customer) {
             setCustomerData({
@@ -24,34 +26,38 @@ export default function CustomerModal({ open, customer, onClose, refreshData }) 
                 email: customer.email || "",
                 name: customer.name || "",
                 address: customer.address || "",
-                dateOfReg: customer.dateOfReg || "",
-                password: customer.password || "",
+                dateOfReg: customer.dateOfReg || ""
             });
+            setNewPassword("");
+            setShowPassword(false);
         }
-    }, [customer]); // ✅ Runs every time `customer` changes
+    }, [customer]);
 
-    // ✅ Handle Input Changes
     const handleChange = (e) => {
         const { name, value } = e.target;
         setCustomerData((prev) => ({ ...prev, [name]: value }));
     };
 
-    // ✅ Handle Save
     const handleSave = async () => {
+        const payload = { ...customerData };
+        if (newPassword.trim()) {
+            payload.password = newPassword;
+        }
+
         try {
-            const response = await fetch("/api/employee/allCustomers", {
+            const response = await fetch("/api/employee/customers", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(customerData)
+                body: JSON.stringify(payload)
             });
 
             const result = await response.json();
             if (response.ok) {
-                alert("Customer updated successfully!");
+                alert("✅ Customer updated successfully!");
                 refreshData();
                 onClose();
             } else {
-                alert(`Error: ${result.error}`);
+                alert(`❌ Error: ${result.error}`);
             }
         } catch (error) {
             console.error("❌ Error updating customer:", error);
@@ -59,26 +65,29 @@ export default function CustomerModal({ open, customer, onClose, refreshData }) 
         }
     };
 
-    // ✅ Handle Delete
     const handleDelete = async () => {
+        if (!customerData.cus_ID) return;
+
         if (!window.confirm("Are you sure you want to delete this customer?")) return;
 
         try {
-            const response = await fetch(`/api/employee/allCustomers?cus_ID=${customerData.cus_ID}`, {
-                method: "DELETE"
+            const response = await fetch("/api/employee/customers", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cus_ID: customerData.cus_ID })
             });
 
             const result = await response.json();
             if (response.ok) {
-                alert("Customer deleted successfully!");
+                alert("🗑️ Customer deleted successfully!");
                 refreshData();
                 onClose();
             } else {
-                alert(`Error: ${result.error}`);
+                alert(`❌ Delete failed: ${result.error}`);
             }
         } catch (error) {
             console.error("❌ Error deleting customer:", error);
-            alert("Failed to delete customer.");
+            alert("Server error.");
         }
     };
 
@@ -86,11 +95,68 @@ export default function CustomerModal({ open, customer, onClose, refreshData }) 
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
             <DialogTitle>Edit Customer</DialogTitle>
             <DialogContent>
-                <TextField fullWidth label="Email" name="email" value={customerData.email} onChange={handleChange} margin="normal" />
-                <TextField fullWidth label="Name" name="name" value={customerData.name} onChange={handleChange} margin="normal" />
-                <TextField fullWidth label="Address" name="address" value={customerData.address} onChange={handleChange} margin="normal" />
-                <TextField fullWidth label="Date of Registration" name="dateOfReg" value={customerData.dateOfReg} onChange={handleChange} margin="normal" />
-                <TextField fullWidth label="Password" name="password" value={customerData.password} onChange={handleChange} margin="normal" />
+                <TextField
+                    fullWidth
+                    label="Customer ID"
+                    name="cus_ID"
+                    value={customerData.cus_ID}
+                    margin="normal"
+                    disabled
+                />
+                <TextField
+                    fullWidth
+                    label="Email"
+                    name="email"
+                    value={customerData.email}
+                    onChange={handleChange}
+                    margin="normal"
+                    required
+                />
+                <TextField
+                    fullWidth
+                    label="Name"
+                    name="name"
+                    value={customerData.name}
+                    onChange={handleChange}
+                    margin="normal"
+                    required
+                />
+                <TextField
+                    fullWidth
+                    label="Address"
+                    name="address"
+                    value={customerData.address}
+                    onChange={handleChange}
+                    margin="normal"
+                />
+                <TextField
+                    fullWidth
+                    label="Date of Registration"
+                    name="dateOfReg"
+                    type="date"
+                    value={customerData.dateOfReg}
+                    onChange={handleChange}
+                    margin="normal"
+                    InputLabelProps={{ shrink: true }}
+                />
+                <TextField
+                    fullWidth
+                    label="New Password"
+                    type={showPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    margin="normal"
+                    helperText="Leave blank to keep the current password"
+                    InputProps={{
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton onClick={() => setShowPassword((prev) => !prev)} edge="end">
+                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                            </InputAdornment>
+                        )
+                    }}
+                />
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleDelete} color="error">Delete</Button>

@@ -22,7 +22,7 @@ export default function EditCustomers() {
     const fetchCustomerData = async () => {
         setLoading(true);
         try {
-            const response = await fetch("/api/employee/allCustomers");
+            const response = await fetch("/api/employee/customers");
             const result = await response.json();
             if (response.ok) {
                 setData(result.data || []);
@@ -35,13 +35,11 @@ export default function EditCustomers() {
         setLoading(false);
     };
 
-    // ✅ Open Modal to Edit a Customer
     const handleOpenModal = (customer) => {
         setSelectedCustomer(customer);
         setOpenModal(true);
     };
 
-    // ✅ Open Modal to Create a New Customer
     const handleOpenNewModal = () => {
         setOpenNewModal(true);
     };
@@ -52,7 +50,6 @@ export default function EditCustomers() {
                 Edit Customers
             </Typography>
 
-            {/* ✅ Add New Customer Button */}
             <Box textAlign="right" mb={2}>
                 <Button
                     variant="contained"
@@ -83,7 +80,7 @@ export default function EditCustomers() {
                             {data.length > 0 ? (
                                 data.map((customer) => (
                                     <TableRow
-                                        key={customer.cus_ID}  // ✅ FIX: Ensuring unique key
+                                        key={customer.cus_ID}
                                         hover
                                         onClick={() => handleOpenModal(customer)}
                                         style={{ cursor: "pointer" }}
@@ -107,7 +104,6 @@ export default function EditCustomers() {
                 )}
             </TableContainer>
 
-            {/* ✅ Customer Details Modal (Edit Mode) */}
             <CustomerModal
                 open={openModal}
                 customer={selectedCustomer}
@@ -115,7 +111,6 @@ export default function EditCustomers() {
                 refreshData={fetchCustomerData}
             />
 
-            {/* ✅ New Customer Modal */}
             <NewCustomerModal
                 open={openNewModal}
                 onClose={() => setOpenNewModal(false)}

@@ -1,12 +1,14 @@
+// File: /app/api/room/availableRooms/route.js
+// (or /pages/api/room/availableRooms.js in Next.js 12 or earlier)
 import { NextResponse } from "next/server";
 import { initializeApp } from "firebase/app";
 import {
     getFirestore,
     collection,
-    getDocs
+    getDocs,
 } from "firebase/firestore";
 
-// ✅ Firebase Configuration
+// 1) Firebase Configuration
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -16,77 +18,133 @@ const firebaseConfig = {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// ✅ Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-export async function GET() {
-    try {
-        console.log("🔥 Fetching all available rooms from Firestore...");
+/**
+ * Helper function: check if two date ranges overlap
+ *
+ * Overlaps if (startA <= endB) && (endA >= startB).
+ * Adjust if you want to allow same-day checkin/checkout (e.g., treat boundary touching as non-overlap).
+ */
+function dateRangesOverlap(range1Start, range1End, range2Start, range2End) {
+    return range1Start <= range2End && range1End >= range2Start;
+}
 
-        // Step 1: Fetch All Hotel Chains
+export async function GET(request) {
+    try {
+        // 2) Parse query params for date filtering
+        const { searchParams } = new URL(request.url);
+        const startDateParam = searchParams.get("startDate"); // e.g. "2025-03-12"
+        const endDateParam = searchParams.get("endDate");     // e.g. "2025-03-13"
+
+        let filterByDates = false;
+        let requestStartDate, requestEndDate;
+
+        // Validate the passed-in dates
+        if (startDateParam && endDateParam) {
+            try {
+                filterByDates = true;
+                requestStartDate = new Date(startDateParam);
+                requestEndDate = new Date(endDateParam);
+
+                // Ensure start <= end
+                if (requestStartDate > requestEndDate) {
+                    return NextResponse.json(
+                        { error: "Start date cannot be after End date." },
+                        { status: 400 }
+                    );
+                }
+            } catch (err) {
+                console.error("❌ Failed to parse date params:", err);
+                filterByDates = false;
+            }
+        }
+
+        // 3) Fetch HotelChain docs for chain names
         const hotelChainsSnapshot = await getDocs(collection(db, "HotelChain"));
-        const hotelChainsMap = {}; // { hotelC_ID -> hotelChainName }
+        const hotelChainsMap = {}; // { hotelC_ID -> chainName }
 
         hotelChainsSnapshot.forEach((doc) => {
             const chainData = doc.data();
-            hotelChainsMap[chainData.hotelC_ID] = chainData.name || "Unknown Chain";
+            hotelChainsMap[chainData.hotelC_ID] = chainData.name ?? "Unknown Chain";
         });
 
-        // Step 2: Fetch All Hotels
+        // 4) Fetch Hotel docs for rating, area, etc.
         const hotelsSnapshot = await getDocs(collection(db, "Hotel"));
-        if (hotelsSnapshot.empty) {
-            console.log("🚨 No hotels found!");
-            return NextResponse.json([], { status: 200 });
-        }
+        const hotelMap = {}; // { hotel_ID -> { name, chain, rating, area } }
 
-        // Create a hotel map for quick lookup (hotel_ID -> { hotelName, hotelChain, area, rating })
-        const hotelMap = {};
         hotelsSnapshot.forEach((doc) => {
             const hotelData = doc.data();
             hotelMap[hotelData.hotel_ID] = {
                 hotelName: hotelData.name || "Unknown Hotel",
                 hotelChain: hotelChainsMap[hotelData.hotelC_ID] || "Unknown Chain",
+                rating: Number(hotelData.rating) || 0,
                 area: hotelData.area || "Unknown Area",
-                rating: Number(hotelData.rating) || 0 // ✅ Convert to number
             };
         });
 
-        let allRooms = [];
-
-        // Step 3: Fetch All Rooms
+        // 5) Fetch all Room docs
         const roomsSnapshot = await getDocs(collection(db, "Room"));
-        if (roomsSnapshot.empty) {
-            console.log("🚨 No rooms found!");
-            return NextResponse.json([], { status: 200 });
-        }
+        let availableRooms = [];
 
         roomsSnapshot.forEach((roomDoc) => {
             const roomData = roomDoc.data();
-            const hotelDetails = hotelMap[roomData.hotel_ID] || {
+            const hotelInfo = hotelMap[roomData.hotel_ID] || {
                 hotelName: "Unknown Hotel",
                 hotelChain: "Unknown Chain",
+                rating: 0,
                 area: "Unknown Area",
-                rating: 0
             };
 
-            console.log(`🛏️ Room: ${roomData.room_ID} | Hotel: ${hotelDetails.hotelName} | Rating: ${hotelDetails.rating}`);
+            let isAvailable = true;
 
-            allRooms.push({
-                id: roomDoc.id,
-                hotelID: roomData.hotel_ID,
-                hotelName: hotelDetails.hotelName,
-                hotelChain: hotelDetails.hotelChain,
-                area: hotelDetails.area,
-                hotelRating: hotelDetails.rating, // ✅ Ensure it’s stored correctly
-                ...roomData,
-            });
+            // 6) If we have date filters, check each bookedDates entry for overlap
+            if (filterByDates && Array.isArray(roomData.bookedDates)) {
+                for (let booking of roomData.bookedDates) {
+                    // Convert the booking start/end into Date objects
+                    const bookingStart = new Date(booking.startDate);
+                    const bookingEnd = new Date(booking.endDate);
+
+                    if (
+                        dateRangesOverlap(
+                            requestStartDate,
+                            requestEndDate,
+                            bookingStart,
+                            bookingEnd
+                        )
+                    ) {
+                        isAvailable = false;
+                        break; // no need to check further
+                    }
+                }
+            }
+
+            // If still available, add to results
+            if (isAvailable) {
+                availableRooms.push({
+                    // Firestore document ID
+                    id: roomDoc.id,
+                    room_ID: roomData.room_ID,
+                    // Merge in hotel data
+                    hotelName: hotelInfo.hotelName,
+                    hotelChain: hotelInfo.hotelChain,
+                    hotelRating: hotelInfo.rating,
+                    area: hotelInfo.area,
+
+                    // Other fields on the Room
+                    price: roomData.price ?? 0,
+                    capacity: roomData.capacity ?? 1,
+                    type: roomData.type || "",
+                    amenities: roomData.amenities || [],
+                    view: roomData.view || "",
+                });
+            }
         });
 
-        console.log(`✅ Total rooms fetched: ${allRooms.length}`);
-        return NextResponse.json(allRooms, { status: 200 });
+        return NextResponse.json(availableRooms, { status: 200 });
     } catch (error) {
-        console.error("❌ Error fetching rooms:", error);
+        console.error("❌ Error fetching available rooms:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Container, Typography, Grid, Card, CardActionArea, CardContent, Button } from "@mui/material";
+import { Container, Typography, Grid, Card, CardActionArea, CardContent, Button, Box } from "@mui/material";
 import EditRooms from "../../components/employee/EditRooms/EditRooms";
 import EditHotels from "../../components/employee/EditHotels/EditHotels";
 import EditEmployees from "../../components/employee/EditEmployees/EditEmployees";
@@ -29,10 +29,12 @@ export default function EmployeeDashboard() {
     };
 
     return (
-        <Container maxWidth="sm" style={{ textAlign: "center", marginTop: "40px" }}>
+        <Container maxWidth="lg" style={{ marginTop: "40px" }}>
             {!activeTab ? (
                 <>
-                    <Typography variant="h4" gutterBottom>Employee Dashboard</Typography>
+                    <Typography variant="h4" align="center" gutterBottom>
+                        Employee Dashboard
+                    </Typography>
                     <Grid container spacing={2} direction="column" alignItems="center" style={{ marginTop: "20px" }}>
                         {[
                             { key: "rooms", label: "Edit Rooms" },
@@ -41,11 +43,13 @@ export default function EmployeeDashboard() {
                             { key: "customers", label: "Edit Customers" },
                             { key: "checkin", label: "Check In" }
                         ].map((tab) => (
-                            <Grid item xs={12} key={tab.key}>
+                            <Grid item xs={12} key={tab.key} style={{ width: "100%" }}>
                                 <Card style={{ cursor: "pointer", width: "100%" }} onClick={() => setActiveTab(tab.key)}>
                                     <CardActionArea>
                                         <CardContent>
-                                            <Typography variant="h6">{tab.label}</Typography>
+                                            <Typography variant="h6" align="center">
+                                                {tab.label}
+                                            </Typography>
                                         </CardContent>
                                     </CardActionArea>
                                 </Card>
@@ -55,10 +59,18 @@ export default function EmployeeDashboard() {
                 </>
             ) : (
                 <>
-                    <Button onClick={() => setActiveTab(null)} variant="outlined" color="primary" style={{ marginBottom: "20px" }}>
-                        Back
-                    </Button>
-                    {renderComponent()}
+                    <Box display="flex" justifyContent="flex-end" mb={2}>
+                        <Button
+                            onClick={() => setActiveTab(null)}
+                            variant="outlined"
+                            color="primary"
+                        >
+                            Back
+                        </Button>
+                    </Box>
+                    <Box width="100%">
+                        {renderComponent()}
+                    </Box>
                 </>
             )}
         </Container>

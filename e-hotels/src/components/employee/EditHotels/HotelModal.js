@@ -2,136 +2,120 @@
 
 import { useState, useEffect } from "react";
 import {
-    Dialog, DialogTitle, DialogContent, DialogActions,
-    Button, TextField
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    TextField,
+    Button,
+    Box,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
 } from "@mui/material";
 
-export default function HotelModal({ open, hotel, onClose, refreshData }) {
-    const [hotelData, setHotelData] = useState({
-        hotel_ID: "",
-        hotelC_ID: "",
+const hotelChains = [
+    { hotelC_ID: "hc1", name: "Summit Grand Group" },
+    { hotelC_ID: "hc2", name: "Evergreen Hospitality" },
+    { hotelC_ID: "hc3", name: "Urban Lux Stays" },
+    { hotelC_ID: "hc4", name: "Coastal Retreats" },
+    { hotelC_ID: "hc5", name: "Mountain Escapes" },
+];
+
+const areaOptions = ["Downtown", "Suburban", "Countryside"];
+
+export default function HotelModal({ open, onClose, hotel, refreshData }) {
+    const [formData, setFormData] = useState({
         name: "",
         address: "",
         area: "",
         email: "",
         numOfRooms: "",
         phoneNumber: "",
-        rating: ""
+        rating: "",
+        hotelChain: ""
     });
 
-    // ✅ Populate data when hotel is selected
     useEffect(() => {
-        if (hotel) {
-            setHotelData({
-                hotel_ID: hotel.hotel_ID || "",
-                hotelC_ID: hotel.hotelC_ID || "",
-                name: hotel.name || "",
-                address: hotel.address || "",
-                area: hotel.area || "",
-                email: hotel.email || "",
-                numOfRooms: hotel.numOfRooms || "",
-                phoneNumber: hotel.phoneNumber || "",
-                rating: hotel.rating || ""
-            });
-        }
+        if (hotel) setFormData({ ...hotel });
     }, [hotel]);
 
-    // ✅ Handle Input Changes
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setHotelData((prev) => ({ ...prev, [name]: value }));
+        setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    // ✅ Handle Save (Create or Edit Hotel)
     const handleSave = async () => {
-        if (!hotelData.hotel_ID) {
-            alert("Hotel ID is required for editing.");
-            return;
-        }
+        const hasEmpty = Object.values(formData).some((v) => v === "");
+        if (hasEmpty) return alert("Please fill out all fields.");
 
         try {
-            const method = hotel ? "PUT" : "POST";
-            const requestBody = {
-                hotel_ID: hotelData.hotel_ID,
-                hotelC_ID: hotelData.hotelC_ID,
-                name: hotelData.name,
-                location: hotelData.address, // ✅ Ensure address is sent as "location"
-                area: hotelData.area,
-                email: hotelData.email,
-                numOfRooms: hotelData.numOfRooms,
-                phoneNumber: hotelData.phoneNumber,
-                rating: hotelData.rating
-            };
-
-            const response = await fetch("/api/employee/allHotels", {
-                method,
+            const response = await fetch("/api/employee/hotel", {
+                method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(requestBody) // ✅ Ensure correct format
+                body: JSON.stringify({ ...formData, hotel_ID: hotel.hotel_ID })
             });
-
             const result = await response.json();
-            if (response.ok) {
-                alert(`Hotel ${hotel ? "updated" : "added"} successfully!`);
-                refreshData();
-                onClose();
-            } else {
-                alert(`Error: ${result.error}`);
-            }
-        } catch (error) {
-            console.error("❌ Error saving hotel:", error);
-            alert("Failed to save hotel.");
+            if (!response.ok) throw new Error(result.error || "Failed to update");
+            alert("✅ Hotel updated successfully");
+            refreshData();
+            onClose();
+        } catch (err) {
+            console.error("❌ Update error:", err);
+            alert("Failed to update hotel.");
         }
     };
 
-
-
-    // ✅ Handle Delete
     const handleDelete = async () => {
-        if (!hotelData.hotel_ID) {
-            alert("Hotel ID is missing. Cannot delete.");
-            return;
-        }
-
-        if (!window.confirm("Are you sure you want to delete this hotel?")) return;
-
+        if (!confirm("Are you sure you want to delete this hotel?")) return;
         try {
-            const response = await fetch("/api/employee/allHotels", {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ hotel_ID: hotelData.hotel_ID }) // ✅ Correctly sending hotel_ID
-            });
-
+            const response = await fetch(`/api/employee/hotel?hotel_ID=${hotel.hotel_ID}`, { method: "DELETE" });
             const result = await response.json();
-            if (response.ok) {
-                alert("Hotel deleted successfully!");
-                refreshData();
-                onClose();
-            } else {
-                alert(`Error: ${result.error}`);
-            }
-        } catch (error) {
-            console.error("❌ Error deleting hotel:", error);
+            if (!response.ok) throw new Error(result.error);
+            alert("✅ Hotel deleted");
+            refreshData();
+            onClose();
+        } catch (err) {
+            console.error("❌ Delete error:", err);
             alert("Failed to delete hotel.");
         }
     };
 
-
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-            <DialogTitle>{hotel ? "Edit Hotel" : "Add New Hotel"}</DialogTitle>
+            <DialogTitle>Edit Hotel</DialogTitle>
             <DialogContent>
-                <TextField fullWidth label="Hotel ID" name="hotel_ID" value={hotelData.hotel_ID} onChange={handleChange} margin="normal" required />
-                <TextField fullWidth label="Hotel Chain ID" name="hotelC_ID" value={hotelData.hotelC_ID} onChange={handleChange} margin="normal" required />
-                <TextField fullWidth label="Name" name="name" value={hotelData.name} onChange={handleChange} margin="normal" required />
-                <TextField fullWidth label="Address" name="address" value={hotelData.address} onChange={handleChange} margin="normal" required />
-                <TextField fullWidth label="Area" name="area" value={hotelData.area} onChange={handleChange} margin="normal" required />
-                <TextField fullWidth label="Email" name="email" value={hotelData.email} onChange={handleChange} margin="normal" required />
-                <TextField fullWidth label="Number of Rooms" name="numOfRooms" type="number" value={hotelData.numOfRooms} onChange={handleChange} margin="normal" required />
-                <TextField fullWidth label="Phone Number" name="phoneNumber" value={hotelData.phoneNumber} onChange={handleChange} margin="normal" required />
-                <TextField fullWidth label="Rating" name="rating" type="number" value={hotelData.rating} onChange={handleChange} margin="normal" required />
+                <Box display="flex" flexDirection="column" gap={2} mt={1}>
+                    <TextField label="Name" name="name" value={formData.name} onChange={handleChange} fullWidth required />
+                    <TextField label="Address" name="address" value={formData.address} onChange={handleChange} fullWidth required />
+
+                    <FormControl fullWidth>
+                        <InputLabel>Area</InputLabel>
+                        <Select name="area" value={formData.area} onChange={handleChange}>
+                            {areaOptions.map((area) => (
+                                <MenuItem key={area} value={area}>{area}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl fullWidth>
+                        <InputLabel>Hotel Chain</InputLabel>
+                        <Select name="hotelChain" value={formData.hotelChain} onChange={handleChange}>
+                            {hotelChains.map((chain) => (
+                                <MenuItem key={chain.hotelC_ID} value={chain.name}>{chain.name}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <TextField label="Email" name="email" value={formData.email} onChange={handleChange} fullWidth required />
+                    <TextField label="Number of Rooms" name="numOfRooms" value={formData.numOfRooms} onChange={handleChange} type="number" fullWidth required />
+                    <TextField label="Phone Number" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} fullWidth required />
+                    <TextField label="Rating" name="rating" value={formData.rating} onChange={handleChange} type="number" fullWidth required />
+                </Box>
             </DialogContent>
             <DialogActions>
-                {hotel && <Button onClick={handleDelete} color="error">Delete</Button>}
+                <Button onClick={handleDelete} color="error">Delete</Button>
                 <Button onClick={onClose} color="secondary">Cancel</Button>
                 <Button onClick={handleSave} variant="contained" color="primary">Save</Button>
             </DialogActions>

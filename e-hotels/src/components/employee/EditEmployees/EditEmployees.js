@@ -22,7 +22,7 @@ export default function EditEmployees() {
     const fetchEmployeeData = async () => {
         setLoading(true);
         try {
-            const response = await fetch("/api/employee/allEmployees");
+            const response = await fetch("/api/employee/employees");
             const result = await response.json();
             setData(result.data || []);
         } catch (error) {

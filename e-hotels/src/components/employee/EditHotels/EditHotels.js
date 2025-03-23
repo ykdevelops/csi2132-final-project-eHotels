@@ -5,14 +5,12 @@ import {
     Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
     Paper, Button, CircularProgress, Box
 } from "@mui/material";
-import HotelModal from "./HotelModal";
 import NewHotelModal from "./NewHotelModal";
 
 export default function EditHotels() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [openModal, setOpenModal] = useState(false);
-    const [openNewModal, setOpenNewModal] = useState(false);
     const [selectedHotel, setSelectedHotel] = useState(null);
 
     useEffect(() => {
@@ -22,7 +20,7 @@ export default function EditHotels() {
     const fetchHotelData = async () => {
         setLoading(true);
         try {
-            const response = await fetch("/api/employee/allHotels");
+            const response = await fetch("/api/employee/hotel");
             const result = await response.json();
             setData(result.data || []);
         } catch (error) {
@@ -31,15 +29,24 @@ export default function EditHotels() {
         setLoading(false);
     };
 
+    const handleOpenAdd = () => {
+        setSelectedHotel(null);
+        setOpenModal(true);
+    };
+
+    const handleOpenEdit = (hotel) => {
+        setSelectedHotel(hotel);
+        setOpenModal(true);
+    };
+
     return (
         <Container maxWidth="lg">
             <Typography variant="h4" fontWeight="bold" gutterBottom textAlign="center">
                 Edit Hotels
             </Typography>
 
-            {/* ✅ Add New Hotel Button */}
             <Box textAlign="right" mb={2}>
-                <Button variant="contained" color="primary" onClick={() => setOpenNewModal(true)}>
+                <Button variant="contained" color="primary" onClick={handleOpenAdd}>
                     + Add New Hotel
                 </Button>
             </Box>
@@ -54,28 +61,33 @@ export default function EditHotels() {
                         <TableHead>
                             <TableRow>
                                 <TableCell>Hotel ID</TableCell>
-                                <TableCell>Chain ID</TableCell>
                                 <TableCell>Name</TableCell>
                                 <TableCell>Address</TableCell>
                                 <TableCell>Area</TableCell>
                                 <TableCell>Email</TableCell>
-                                <TableCell>Number of Rooms</TableCell>
-                                <TableCell>Phone Number</TableCell>
+                                <TableCell>Rooms</TableCell>
+                                <TableCell>Phone</TableCell>
                                 <TableCell>Rating</TableCell>
+                                <TableCell>Chain</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {data.map((hotel) => (
-                                <TableRow key={hotel.hotel_ID} hover onClick={() => { setSelectedHotel(hotel); setOpenModal(true); }} style={{ cursor: "pointer" }}>
+                                <TableRow
+                                    key={hotel.hotel_ID}
+                                    hover
+                                    onClick={() => handleOpenEdit(hotel)}
+                                    style={{ cursor: "pointer" }}
+                                >
                                     <TableCell>{hotel.hotel_ID}</TableCell>
-                                    <TableCell>{hotel.hotelC_ID || "N/A"}</TableCell>
-                                    <TableCell>{hotel.name || "N/A"}</TableCell>
-                                    <TableCell>{hotel.address || "N/A"}</TableCell>
-                                    <TableCell>{hotel.area || "N/A"}</TableCell>
-                                    <TableCell>{hotel.email || "N/A"}</TableCell>
-                                    <TableCell>{hotel.numOfRooms || "N/A"}</TableCell>
-                                    <TableCell>{hotel.phoneNumber || "N/A"}</TableCell>
-                                    <TableCell>{hotel.rating || "N/A"}</TableCell>
+                                    <TableCell>{hotel.name}</TableCell>
+                                    <TableCell>{hotel.address}</TableCell>
+                                    <TableCell>{hotel.area}</TableCell>
+                                    <TableCell>{hotel.email}</TableCell>
+                                    <TableCell>{hotel.numOfRooms}</TableCell>
+                                    <TableCell>{hotel.phoneNumber}</TableCell>
+                                    <TableCell>{hotel.rating}</TableCell>
+                                    <TableCell>{hotel.hotelChain}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -83,19 +95,11 @@ export default function EditHotels() {
                 )}
             </TableContainer>
 
-            {/* ✅ Hotel Details Modal */}
-            <HotelModal
+            <NewHotelModal
                 open={openModal}
-                hotel={selectedHotel}
                 onClose={() => setOpenModal(false)}
                 refreshData={fetchHotelData}
-            />
-
-            {/* ✅ New Hotel Modal */}
-            <NewHotelModal
-                open={openNewModal}
-                onClose={() => setOpenNewModal(false)}
-                refreshData={fetchHotelData}
+                hotel={selectedHotel}
             />
         </Container>
     );

@@ -8,42 +8,55 @@ import {
 
 export default function NewEmployeeModal({ open, onClose, refreshData }) {
     const [employeeData, setEmployeeData] = useState({
-        emp_ID: "", // Unique Employee ID (Required)
-        hotel_ID: "", // Required
-        name: "", // Required
-        email: "", // Required
-        address: "", // Required
-        role: "", // Required
-        phoneNumber: "", // Required
-        password: "" // Required
+        emp_ID: "",
+        hotel_ID: "",
+        name: "",
+        email: "",
+        address: "",
+        role: "",
+        phoneNumber: "",
+        password: ""
     });
 
-    // ✅ Handle Input Changes
     const handleChange = (e) => {
         const { name, value } = e.target;
         setEmployeeData((prev) => ({ ...prev, [name]: value }));
     };
 
-    // ✅ Handle Save (Create New Employee)
+    const resetForm = () => {
+        setEmployeeData({
+            emp_ID: "",
+            hotel_ID: "",
+            name: "",
+            email: "",
+            address: "",
+            role: "",
+            phoneNumber: "",
+            password: ""
+        });
+    };
+
     const handleSave = async () => {
-        // Ensure all required fields are filled
-        if (!employeeData.emp_ID || !employeeData.hotel_ID || !employeeData.name || !employeeData.email || !employeeData.address || !employeeData.role || !employeeData.phoneNumber || !employeeData.password) {
-            alert("⚠️ Please fill in all required fields (Employee ID, Hotel ID, Name, Email, Address, Role, Phone Number, Password).");
+        const { emp_ID, hotel_ID, name, email, address, role, phoneNumber, password } = employeeData;
+
+        if (!emp_ID || !hotel_ID || !name || !email || !address || !role || !phoneNumber || !password) {
+            alert("⚠️ Please fill in all required fields.");
             return;
         }
 
         try {
-            const response = await fetch("/api/employee/allEmployees", {
+            const response = await fetch("/api/employee/employees", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...employeeData }) // Send full employee data
+                body: JSON.stringify(employeeData)
             });
 
             const result = await response.json();
             if (response.ok) {
                 alert("✅ New employee added successfully!");
-                refreshData(); // Refresh table
-                onClose(); // Close modal
+                refreshData();
+                resetForm();        // ✅ Clear fields
+                onClose();          // ✅ Close modal
             } else {
                 alert(`❌ Error: ${result.error}`);
             }

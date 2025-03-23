@@ -1,77 +1,146 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
-    Button, TextField
+    TextField, Button, FormControl, InputLabel, Select, MenuItem, Box
 } from "@mui/material";
 
-export default function NewHotelModal({ open, onClose, refreshData }) {
-    const [hotelData, setHotelData] = useState({
+// Static hotel chain options
+const hotelChains = [
+    { hotelC_ID: "hc1", name: "Summit Grand Group" },
+    { hotelC_ID: "hc2", name: "Evergreen Hospitality" },
+    { hotelC_ID: "hc3", name: "Urban Lux Stays" },
+    { hotelC_ID: "hc4", name: "Coastal Retreats" },
+    { hotelC_ID: "hc5", name: "Mountain Escapes" },
+];
+
+const areaOptions = ["Downtown", "Suburban", "Countryside"];
+
+export default function NewHotelModal({ open, onClose, refreshData, hotel }) {
+    const [formData, setFormData] = useState({
         name: "",
-        location: "",
-        hotelC_ID: "",
+        address: "",
         area: "",
         email: "",
-        numOfRooms: 0, // Default as number
+        numOfRooms: "",
         phoneNumber: "",
-        rating: 0 // Default as number
+        rating: "",
+        hotelChain: ""
     });
 
-    // ✅ Handle Input Changes
+    useEffect(() => {
+        if (hotel) {
+            setFormData({ ...hotel });
+        } else {
+            setFormData({
+                name: "",
+                address: "",
+                area: "",
+                email: "",
+                numOfRooms: "",
+                phoneNumber: "",
+                rating: "",
+                hotelChain: ""
+            });
+        }
+    }, [hotel, open]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setHotelData((prev) => ({
-            ...prev,
-            [name]: name === "numOfRooms" || name === "rating" ? Number(value) : value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // ✅ Handle Save New Hotel
     const handleSave = async () => {
-        console.log("🔍 Sending Hotel Data:", JSON.stringify(hotelData)); // Debugging log
+        const isEditing = Boolean(hotel?.hotel_ID);
+        const hasEmpty = Object.values(formData).some((val) => val === "");
 
-        // Ensure required fields are filled
-        if (!hotelData.name || !hotelData.location || !hotelData.email || !hotelData.numOfRooms) {
-            alert("Please fill in all required fields (Name, Location, Email, Number of Rooms).");
+        if (hasEmpty) {
+            alert("Please fill in all fields.");
             return;
         }
 
         try {
-            const response = await fetch("/api/employee/allHotels", {
-                method: "POST",
+            const res = await fetch("/api/employee/hotel", {
+                method: isEditing ? "PUT" : "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(hotelData) // ✅ Send correct format
+                body: JSON.stringify({
+                    ...formData,
+                    hotel_ID: isEditing ? hotel.hotel_ID : `h_${Date.now()}`
+                }),
             });
 
-            const result = await response.json();
-            if (response.ok) {
-                alert("New hotel added successfully!");
-                refreshData();
-                onClose();
-            } else {
-                alert(`Error: ${result.error}`);
-            }
-        } catch (error) {
-            console.error("❌ Error saving new hotel:", error);
-            alert("Failed to save new hotel.");
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || "Save failed");
+
+            alert(isEditing ? "✅ Hotel updated!" : "✅ Hotel created!");
+            refreshData();
+            onClose();
+        } catch (err) {
+            console.error(err);
+            alert("Failed to save hotel.");
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!hotel?.hotel_ID) return;
+        if (!confirm("Are you sure you want to delete this hotel?")) return;
+
+        try {
+            const res = await fetch(`/api/employee/hotel?hotel_ID=${hotel.hotel_ID}`, {
+                method: "DELETE",
+            });
+
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || "Delete failed");
+
+            alert("✅ Hotel deleted!");
+            refreshData();
+            onClose();
+        } catch (err) {
+            console.error(err);
+            alert("Failed to delete hotel.");
         }
     };
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-            <DialogTitle>Add New Hotel</DialogTitle>
+            <DialogTitle>{hotel ? "Edit Hotel" : "Add New Hotel"}</DialogTitle>
             <DialogContent>
-                <TextField fullWidth label="Name" name="name" value={hotelData.name} onChange={handleChange} margin="normal" required />
-                <TextField fullWidth label="Location" name="location" value={hotelData.location} onChange={handleChange} margin="normal" required />
-                <TextField fullWidth label="Hotel Chain ID" name="hotelC_ID" value={hotelData.hotelC_ID} onChange={handleChange} margin="normal" />
-                <TextField fullWidth label="Area" name="area" value={hotelData.area} onChange={handleChange} margin="normal" />
-                <TextField fullWidth label="Email" name="email" value={hotelData.email} onChange={handleChange} margin="normal" required />
-                <TextField fullWidth label="Number of Rooms" name="numOfRooms" type="number" value={hotelData.numOfRooms} onChange={handleChange} margin="normal" required />
-                <TextField fullWidth label="Phone Number" name="phoneNumber" value={hotelData.phoneNumber} onChange={handleChange} margin="normal" />
-                <TextField fullWidth label="Rating" name="rating" type="number" value={hotelData.rating} onChange={handleChange} margin="normal" />
+                <Box display="flex" flexDirection="column" gap={2} mt={1}>
+                    <TextField label="Name" name="name" value={formData.name} onChange={handleChange} fullWidth required />
+                    <TextField label="Address" name="address" value={formData.address} onChange={handleChange} fullWidth required />
+
+                    <FormControl fullWidth>
+                        <InputLabel>Area</InputLabel>
+                        <Select name="area" value={formData.area} onChange={handleChange}>
+                            {areaOptions.map(area => (
+                                <MenuItem key={area} value={area}>{area}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl fullWidth>
+                        <InputLabel>Hotel Chain</InputLabel>
+                        <Select name="hotelChain" value={formData.hotelChain} onChange={handleChange}>
+                            {hotelChains.map(chain => (
+                                <MenuItem key={chain.hotelC_ID} value={chain.name}>{chain.name}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <TextField label="Email" name="email" value={formData.email} onChange={handleChange} fullWidth required />
+                    <TextField label="Number of Rooms" name="numOfRooms" value={formData.numOfRooms} onChange={handleChange} type="number" fullWidth required />
+                    <TextField label="Phone Number" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} fullWidth required />
+                    <TextField label="Rating" name="rating" value={formData.rating} onChange={handleChange} type="number" fullWidth required />
+                </Box>
             </DialogContent>
             <DialogActions>
+                {hotel?.hotel_ID && (
+                    <Button onClick={handleDelete} color="error">
+                        Delete
+                    </Button>
+                )}
                 <Button onClick={onClose} color="secondary">Cancel</Button>
                 <Button onClick={handleSave} variant="contained" color="primary">Save</Button>
             </DialogActions>

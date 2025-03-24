@@ -510,38 +510,43 @@ const rent = [
     {
         rent_ID: "rent1",
         cus_ID: "c1",
-        room_ID: "r3_1",
-        startDate: "2025-06-01",
-        endDate: "2025-06-07",
+        room_ID: "r1_5",
+        startDate: "2025-06-08",
+        endDate: "2025-06-11",
+        payment_ID: "payment_1"
     },
     {
         rent_ID: "rent2",
         cus_ID: "c2",
-        room_ID: "r1_2",
-        startDate: "2025-08-10",
-        endDate: "2025-08-15",
+        room_ID: "r2_3",
+        startDate: "2025-06-15",
+        endDate: "2025-06-18",
+        payment_ID: "payment_2"
     },
     {
         rent_ID: "rent3",
         cus_ID: "c3",
-        room_ID: "r2_5",
-        startDate: "2025-09-05",
-        endDate: "2025-09-10",
+        room_ID: "r3_4",
+        startDate: "2025-06-22",
+        endDate: "2025-06-25",
+        payment_ID: "payment_3"
     },
     {
         rent_ID: "rent4",
         cus_ID: "c4",
-        room_ID: "r6_3",
-        startDate: "2025-11-20",
-        endDate: "2025-11-22",
+        room_ID: "r4_2",
+        startDate: "2025-06-29",
+        endDate: "2025-07-02",
+        payment_ID: "payment_4"
     },
     {
         rent_ID: "rent5",
         cus_ID: "c5",
-        room_ID: "r4_2",
-        startDate: "2025-12-01",
-        endDate: "2025-12-05",
-    },
+        room_ID: "r5_3",
+        startDate: "2025-07-06",
+        endDate: "2025-07-09",
+        payment_ID: "payment_5"
+    }
 ];
 
 // ============================================
@@ -781,30 +786,40 @@ const managers = [
 // ========== Payment (5) ==========
 const payments = [
     {
-        pay_ID: "p1",
-        amount: 300,
-        date: "2025-04-15",
-    },
-    {
-        pay_ID: "p2",
+        pay_ID: "payment_1",
+        cus_ID: "c1",
         amount: 450,
-        date: "2025-05-02",
+        date: "2025-06-08",
+        method: "Credit Card"
     },
     {
-        pay_ID: "p3",
-        amount: 120,
-        date: "2025-06-09",
+        pay_ID: "payment_2",
+        cus_ID: "c2",
+        amount: 375,
+        date: "2025-06-15",
+        method: "Debit Card"
     },
     {
-        pay_ID: "p4",
-        amount: 750,
-        date: "2025-07-10",
+        pay_ID: "payment_3",
+        cus_ID: "c3",
+        amount: 600,
+        date: "2025-06-22",
+        method: "Cash"
     },
     {
-        pay_ID: "p5",
-        amount: 280,
-        date: "2025-08-01",
+        pay_ID: "payment_4",
+        cus_ID: "c4",
+        amount: 520,
+        date: "2025-06-29",
+        method: "Credit Card"
     },
+    {
+        pay_ID: "payment_5",
+        cus_ID: "c5",
+        amount: 400,
+        date: "2025-07-06",
+        method: "Bank Transfer"
+    }
 ];
 
 // ==================================

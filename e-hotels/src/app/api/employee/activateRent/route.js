@@ -18,51 +18,53 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/**
- * ✅ POST Request: Activate Rent
- */
 export async function POST(req) {
     try {
-        const { book_ID, ba_ID, checkInDate, checkOutDate, cus_ID, room_ID } = await req.json();
+        const data = await req.json();
 
-        if (!book_ID || !cus_ID || !room_ID || !checkInDate || !checkOutDate) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-        }
-
-        // ✅ Mark booking as checked in
-        const bookingRef = doc(db, "Book", book_ID);
-        await updateDoc(bookingRef, { checkedIn: true });
-
-        // ✅ Create Rent document
-        const rentRef = doc(collection(db, "Rent"));
-        const rentData = {
-            rent_ID: rentRef.id,
+        const {
             book_ID,
-            ba_ID,
             checkInDate,
             checkOutDate,
             cus_ID,
             room_ID,
-            active: true
+            ba_ID
+        } = data;
+
+        const rent_ID = `rent_${Date.now()}`;
+        const archive_ID = `rentArchive_${Date.now()}`;
+
+        const rentData = {
+            rent_ID,
+            book_ID,
+            checkInDate,
+            checkOutDate,
+            cus_ID,
+            room_ID,
+            active: true,
+            dateCreated: new Date().toISOString()
         };
-        await setDoc(rentRef, rentData);
 
-        // ✅ Create RentArchive document
-        const rentArchiveRef = doc(collection(db, "RentArchive"));
-        await setDoc(rentArchiveRef, rentData);
+        const rentArchiveData = {
+            ...rentData,
+            rentArchive_ID: archive_ID,
+            ba_ID
+        };
 
-        // ✅ Create CheckIn document
-        const checkInRef = doc(collection(db, "CheckIn"));
-        await setDoc(checkInRef, { book_ID, cus_ID, room_ID, checkInDate });
+        // ✅ 1. Save to Rents
+        await setDoc(doc(db, "Rent", rent_ID), rentData);
 
-        return NextResponse.json({
-            success: true,
-            message: "Booking checked in, Rent activated, and archived.",
-            data: rentData
-        }, { status: 201 });
+        // ✅ 2. Save to RentArchives
+        await setDoc(doc(db, "RentArchive", archive_ID), rentArchiveData);
 
+        // ✅ 3. Update Book to mark as checkedIn
+        await updateDoc(doc(db, "Book", book_ID), {
+            checkedIn: true
+        });
+
+        return NextResponse.json({ success: true });
     } catch (error) {
-        console.error("❌ [POST] Error activating rent:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        console.error("❌ Failed to activate rent:", error);
+        return NextResponse.json({ error: "Failed to activate rent." }, { status: 500 });
     }
 }

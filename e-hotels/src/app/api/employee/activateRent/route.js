@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { initializeApp } from "firebase/app";
 import {
-    getFirestore, collection, doc, setDoc, updateDoc
+    getFirestore,
+    collection,
+    doc,
+    setDoc,
+    updateDoc
 } from "firebase/firestore";
 
 // ✅ Firebase Configuration
@@ -28,12 +32,27 @@ export async function POST(req) {
             checkOutDate,
             cus_ID,
             room_ID,
-            ba_ID
+            ba_ID,
+            paymentAmount,
+            paymentMethod
         } = data;
 
         const rent_ID = `rent_${Date.now()}`;
         const archive_ID = `rentArchive_${Date.now()}`;
+        const payment_ID = `payment_${Date.now()}`;
 
+        // ✅ 1. Create Payment Document
+        const paymentData = {
+            pay_ID: payment_ID,
+            cus_ID,
+            amount: Number(paymentAmount),
+            method: paymentMethod,
+            date: new Date().toISOString().split("T")[0] // just the date part
+        };
+
+        await setDoc(doc(db, "Payment", payment_ID), paymentData);
+
+        // ✅ 2. Create Rent Document (with pay_ID linked)
         const rentData = {
             rent_ID,
             book_ID,
@@ -41,30 +60,30 @@ export async function POST(req) {
             checkOutDate,
             cus_ID,
             room_ID,
+            pay_ID: payment_ID,
             active: true,
             dateCreated: new Date().toISOString()
         };
 
+        await setDoc(doc(db, "Rent", rent_ID), rentData);
+
+        // ✅ 3. Create RentArchive Document
         const rentArchiveData = {
             ...rentData,
             rentArchive_ID: archive_ID,
             ba_ID
         };
 
-        // ✅ 1. Save to Rents
-        await setDoc(doc(db, "Rent", rent_ID), rentData);
-
-        // ✅ 2. Save to RentArchives
         await setDoc(doc(db, "RentArchive", archive_ID), rentArchiveData);
 
-        // ✅ 3. Update Book to mark as checkedIn
+        // ✅ 4. Mark Booking as Checked-In
         await updateDoc(doc(db, "Book", book_ID), {
             checkedIn: true
         });
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error("❌ Failed to activate rent:", error);
-        return NextResponse.json({ error: "Failed to activate rent." }, { status: 500 });
+        console.error("❌ Failed to activate rent with payment:", error);
+        return NextResponse.json({ error: "Failed to activate rent with payment." }, { status: 500 });
     }
 }

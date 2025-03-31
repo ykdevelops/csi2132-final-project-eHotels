@@ -505,49 +505,6 @@ const book = [
     },
 ];
 
-// ========== Rent (5) ==========
-const rent = [
-    {
-        rent_ID: "rent1",
-        cus_ID: "c1",
-        room_ID: "r1_5",
-        startDate: "2025-06-08",
-        endDate: "2025-06-11",
-        payment_ID: "payment_1"
-    },
-    {
-        rent_ID: "rent2",
-        cus_ID: "c2",
-        room_ID: "r2_3",
-        startDate: "2025-06-15",
-        endDate: "2025-06-18",
-        payment_ID: "payment_2"
-    },
-    {
-        rent_ID: "rent3",
-        cus_ID: "c3",
-        room_ID: "r3_4",
-        startDate: "2025-06-22",
-        endDate: "2025-06-25",
-        payment_ID: "payment_3"
-    },
-    {
-        rent_ID: "rent4",
-        cus_ID: "c4",
-        room_ID: "r4_2",
-        startDate: "2025-06-29",
-        endDate: "2025-07-02",
-        payment_ID: "payment_4"
-    },
-    {
-        rent_ID: "rent5",
-        cus_ID: "c5",
-        room_ID: "r5_3",
-        startDate: "2025-07-06",
-        endDate: "2025-07-09",
-        payment_ID: "payment_5"
-    }
-];
 
 // ============================================
 // 3) NEW RELATIONS (5 each), from screenshots
@@ -822,13 +779,56 @@ const payments = [
     }
 ];
 
+// ========== Rent (5) ==========
+const rent = [
+    {
+        rent_ID: "rent1",
+        cus_ID: "c1",
+        room_ID: "r1_5",
+        startDate: "2025-06-08",
+        endDate: "2025-06-11",
+        payment_ID: "payment_1"
+    },
+    {
+        rent_ID: "rent2",
+        cus_ID: "c2",
+        room_ID: "r2_3",
+        startDate: "2025-06-15",
+        endDate: "2025-06-18",
+        payment_ID: "payment_2"
+    },
+    {
+        rent_ID: "rent3",
+        cus_ID: "c3",
+        room_ID: "r3_4",
+        startDate: "2025-06-22",
+        endDate: "2025-06-25",
+        payment_ID: "payment_3"
+    },
+    {
+        rent_ID: "rent4",
+        cus_ID: "c4",
+        room_ID: "r4_2",
+        startDate: "2025-06-29",
+        endDate: "2025-07-02",
+        payment_ID: "payment_4"
+    },
+    {
+        rent_ID: "rent5",
+        cus_ID: "c5",
+        room_ID: "r5_3",
+        startDate: "2025-07-06",
+        endDate: "2025-07-09",
+        payment_ID: "payment_5"
+    }
+];
+
 // ==================================
 // 4) Main population script
 // ==================================
 async function populateFirestore() {
     console.log("🔥 Clearing existing data...");
 
-    // Add all old + new collections here
     const collectionsToClear = [
         "HotelChain",
         "Hotel",
@@ -841,7 +841,7 @@ async function populateFirestore() {
         "BookArchive",
         "Employee",
         "Manager",
-        "Payment",
+        "Payment"
     ];
 
     for (const col of collectionsToClear) {
@@ -851,56 +851,31 @@ async function populateFirestore() {
 
     console.log("🔥 Populating Firestore...");
 
-    // =======================================
-    // 4A) Insert old (original) data
-    // =======================================
     await insertData("HotelChain", hotelChains, "hotelC_ID");
     await insertData("Hotel", hotels, "hotel_ID");
     await insertData("Room", rooms, "room_ID");
 
-    // Customers get hashed passwords
     for (const cust of customers) {
         cust.password = await bcrypt.hash("1234", 10);
     }
     await insertData("Customer", customers, "cus_ID");
 
+    await insertData("Payment", payments, "pay_ID");
     await insertData("Book", book, "book_ID");
     await insertData("Rent", rent, "rent_ID");
-
-    // =======================================
-    // 4B) Insert new data (from screenshots)
-    // =======================================
-
-    // CheckIn
     await insertData("CheckIn", checkIns, "checkIn_ID");
-
-    // RentArchive
     await insertData("RentArchive", rentArchive, "rentA_ID");
-
-    // BookArchive
     await insertData("BookArchive", bookArchive, "bookA_ID");
 
-    // Employees get hashed passwords, if needed
     for (const emp of employees) {
         emp.password = await bcrypt.hash("1234", 10);
     }
     await insertData("Employee", employees, "emp_ID");
-
-    // Managers (hash if needed)
-    for (const mgr of managers) {
-        // mgr.password = await bcrypt.hash("1234", 10);
-    }
     await insertData("Manager", managers, "man_ID");
-
-    // Payment
-    await insertData("Payment", payments, "pay_ID");
 
     console.log("✅ Firestore Population Complete!");
 }
 
-// ================ Helper Functions ================
-
-// Clears entire collection
 async function clearCollection(collectionName) {
     const querySnapshot = await getDocs(collection(db, collectionName));
     for (const docSnap of querySnapshot.docs) {
@@ -909,7 +884,6 @@ async function clearCollection(collectionName) {
     }
 }
 
-// Inserts array of items into a Firestore collection
 async function insertData(collectionName, dataArray, idField) {
     for (const item of dataArray) {
         const itemID = item[idField];
@@ -923,5 +897,4 @@ async function insertData(collectionName, dataArray, idField) {
     }
 }
 
-// ================ Run the script ================
 populateFirestore().catch(console.error);
